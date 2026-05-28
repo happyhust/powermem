@@ -148,7 +148,7 @@ pip install powermem langchain langchain-openai
 
 ## 快速开始（Python SDK）
 
-**前置条件：** 将 [.env.example](.env.example) 复制为 `.env`，配置 **LLM** 与 **向量嵌入** 凭证。默认数据库是 SQLite；OceanBase 后端可使用 **嵌入式 SeekDB**，不必额外部署数据库进程。安装后执行 `pmem config init` 可交互式生成同样的配置。详见 [入门指南](docs/guides/0001-getting_started.md)。
+**前置条件：** 将 [.env.example](.env.example) 复制为 `.env`，仅需配置 **LLM** 的 API key。默认 embedder 是本地的 `all-MiniLM-L6-v2`（384 维），无需 API key，首次使用时自动下载；默认数据库是 SQLite，OceanBase 后端还可使用 **嵌入式 SeekDB**，不必额外部署数据库进程。如需调整 provider 或开启高级特性，可改用 [.env.example.full](.env.example.full)，其中按组件分组记录了所有可调参数。安装后执行 `pmem config init` 可交互式生成同样的配置。详见 [入门指南](docs/guides/0001-getting_started.md)。
 
 ### 安装
 

@@ -9,7 +9,9 @@ from typing import Optional, Dict, Any
 from pydantic import BaseModel, Field, field_validator
 
 from powermem.integrations.embeddings.config.base import BaseEmbedderConfig
-from powermem.integrations.embeddings.config.providers import OpenAIEmbeddingConfig
+from powermem.integrations.embeddings.config.providers import (
+    PyseekdbDefaultEmbeddingConfig,
+)
 from powermem.integrations.embeddings.config.sparse_base import BaseSparseEmbedderConfig
 import powermem.integrations.embeddings.config.sparse_providers  # noqa: F401 — ensures sparse provider registry is populated
 from powermem.integrations.llm.config.base import BaseLLMConfig
@@ -215,8 +217,12 @@ class MemoryConfig(BaseModel):
         default_factory=QwenConfig,
     )
     embedder: BaseEmbedderConfig = Field(
-        description="Configuration for the embedding model",
-        default_factory=OpenAIEmbeddingConfig,
+        description=(
+            "Configuration for the embedding model. Defaults to the built-in local "
+            "all-MiniLM-L6-v2 model (384 dims) so PowerMem can start with zero "
+            "configuration; override to use OpenAI/Qwen/SiliconFlow/etc."
+        ),
+        default_factory=PyseekdbDefaultEmbeddingConfig,
     )
     graph_store: Optional[BaseGraphStoreConfig] = Field(
         description="Configuration for the graph store (None means disabled)",

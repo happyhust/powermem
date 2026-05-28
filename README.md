@@ -148,7 +148,7 @@ End-to-end runnable demos:
 
 ## Quick start (Python SDK)
 
-**Prerequisites:** Copy [.env.example](.env.example) to `.env` and set **LLM** and **embedding** credentials. The default database is SQLite; OceanBase can use **embedded SeekDB** without running a separate database service. After install, `pmem config init` walks you through the same setup interactively. See [Getting started](docs/guides/0001-getting_started.md).
+**Prerequisites:** Copy [.env.example](.env.example) to `.env` and set your **LLM** API key — that is the only required credential. The default embedder is a local `all-MiniLM-L6-v2` model (384 dims) that needs no API key and auto-downloads on first use, and the default database is SQLite (OceanBase can also use **embedded SeekDB** without running a separate service). Need to tune providers or unlock advanced features? Copy [.env.example.full](.env.example.full) instead — it documents every available knob, grouped by component. After install, `pmem config init` walks you through the same setup interactively. See [Getting started](docs/guides/0001-getting_started.md).
 
 ### Install
 
