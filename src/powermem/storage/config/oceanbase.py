@@ -454,6 +454,62 @@ class SeekDBConfig(OceanBaseConfig):
         description="Vector index name",
     )
 
+    # --- Connection pool ----------------------------------------------------
+    # Only meaningful when seekdb is pointed at a remote host. In embedded
+    # mode the backend uses a NullPool (single-threaded engine) so these are
+    # effectively no-ops.
+    pool_recycle: int = Field(
+        default=3600,
+        validation_alias=AliasChoices(
+            "pool_recycle",
+            "SEEKDB_POOL_RECYCLE",
+            "OCEANBASE_POOL_RECYCLE",
+        ),
+        description=(
+            "SQLAlchemy pool_recycle in seconds (prevents stale connections). "
+            "No-op in embedded mode."
+        ),
+    )
+
+    pool_pre_ping: bool = Field(
+        default=True,
+        validation_alias=AliasChoices(
+            "pool_pre_ping",
+            "SEEKDB_POOL_PRE_PING",
+            "OCEANBASE_POOL_PRE_PING",
+        ),
+        description=(
+            "SQLAlchemy pool_pre_ping (tests connections before use). "
+            "No-op in embedded mode."
+        ),
+    )
+
+    # --- Hybrid / sparse retrieval toggles ----------------------------------
+    include_sparse: bool = Field(
+        default=False,
+        validation_alias=AliasChoices(
+            "include_sparse",
+            "SEEKDB_INCLUDE_SPARSE",
+            "OCEANBASE_INCLUDE_SPARSE",
+            "SPARSE_VECTOR_ENABLE",
+        ),
+        description="Whether to include sparse vector support",
+    )
+
+    enable_native_hybrid: bool = Field(
+        default=False,
+        validation_alias=AliasChoices(
+            "enable_native_hybrid",
+            "SEEKDB_ENABLE_NATIVE_HYBRID",
+            "OCEANBASE_ENABLE_NATIVE_HYBRID",
+        ),
+        description=(
+            "Use the OceanBase / seekdb native hybrid-search SQL extension "
+            "instead of the Python-side hybrid pipeline. Requires a backend "
+            "that ships the extension (OceanBase ≥4.5, seekdb ≥1.3)."
+        ),
+    )
+
 
 class SeekDBGraphConfig(OceanBaseGraphConfig):
     """Configuration for embedded seekdb graph store.

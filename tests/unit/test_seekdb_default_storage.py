@@ -108,6 +108,38 @@ def test_seekdb_config_falls_back_to_OCEANBASE_schema_shape_aliases(monkeypatch)
     assert cfg.vector_field == "legacy_vec"
 
 
+def test_seekdb_config_reads_SEEKDB_pool_and_hybrid_aliases(monkeypatch):
+    """Pool tuning, sparse toggle, and native hybrid switch all accept
+    SEEKDB_* — closes the last gap with OCEANBASE_* parity.
+    """
+    monkeypatch.setenv("SEEKDB_POOL_RECYCLE", "1800")
+    monkeypatch.setenv("SEEKDB_POOL_PRE_PING", "false")
+    monkeypatch.setenv("SEEKDB_INCLUDE_SPARSE", "true")
+    monkeypatch.setenv("SEEKDB_ENABLE_NATIVE_HYBRID", "true")
+
+    from powermem.storage.config.oceanbase import SeekDBConfig
+
+    cfg = SeekDBConfig()
+    assert cfg.pool_recycle == 1800
+    assert cfg.pool_pre_ping is False
+    assert cfg.include_sparse is True
+    assert cfg.enable_native_hybrid is True
+
+
+def test_seekdb_config_OCEANBASE_pool_and_hybrid_aliases_still_resolve(monkeypatch):
+    """Migration safety: existing OCEANBASE_* keys still resolve under seekdb."""
+    monkeypatch.delenv("SEEKDB_POOL_RECYCLE", raising=False)
+    monkeypatch.delenv("SEEKDB_INCLUDE_SPARSE", raising=False)
+    monkeypatch.setenv("OCEANBASE_POOL_RECYCLE", "7200")
+    monkeypatch.setenv("OCEANBASE_INCLUDE_SPARSE", "true")
+
+    from powermem.storage.config.oceanbase import SeekDBConfig
+
+    cfg = SeekDBConfig()
+    assert cfg.pool_recycle == 7200
+    assert cfg.include_sparse is True
+
+
 def test_memory_config_default_storage_is_seekdb(monkeypatch):
     """The headline #-> seekdb-default contract for zero-config startup."""
     monkeypatch.delenv("DATABASE_PROVIDER", raising=False)
