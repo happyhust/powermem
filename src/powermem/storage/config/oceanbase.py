@@ -1,3 +1,4 @@
+import os
 from typing import Any, ClassVar, Dict, Optional
 
 from pydantic import AliasChoices, Field, field_validator, model_validator
@@ -7,9 +8,17 @@ from powermem.storage.config.base import BaseVectorStoreConfig, BaseGraphStoreCo
 
 
 class OceanBaseConfig(BaseVectorStoreConfig):
+    """Configuration for a remote OceanBase cluster.
+
+    This provider always talks to an actual OceanBase server — there is no
+    embedded / on-disk mode here. The ``OCEANBASE_PATH`` env var is **not
+    accepted** on this provider; use ``DATABASE_PROVIDER=seekdb`` (and
+    ``SEEKDB_PATH``) for embedded mode instead.
+    """
+
     _provider_name = "oceanbase"
     _class_path = "powermem.storage.oceanbase.oceanbase.OceanBaseVectorStore"
-    
+
     try:
         from pyobvector import ObVecClient
     except ImportError:
@@ -30,23 +39,47 @@ class OceanBaseConfig(BaseVectorStoreConfig):
 
     # Connection parameters
     host: str = Field(
-        default="",
+        default="127.0.0.1",
         validation_alias=AliasChoices(
             "host",
             "OCEANBASE_HOST",
         ),
-        description="OceanBase server host (empty means embedded seekdb mode)"
+        description=(
+            "OceanBase server host. Required; must be non-empty. For embedded "
+            "on-disk storage, use DATABASE_PROVIDER=seekdb instead."
+        ),
     )
 
-    ob_path: str = Field(
-        default="./seekdb_data",
-        validation_alias=AliasChoices(
-            "ob_path",
-            "OCEANBASE_PATH",
-        ),
-        description="Path for embedded seekdb data directory (used when host is empty)"
-    )
-    
+    @field_validator("host", mode="after")
+    @classmethod
+    def _host_must_be_nonempty(cls, value: str) -> str:
+        # Inherited validators run on subclasses by default; SeekDBConfig
+        # legitimately allows an empty host (= embedded mode), so the
+        # non-empty check only fires on the direct OceanBaseConfig class.
+        if cls.__name__ != "OceanBaseConfig":
+            return value
+        if not value or not value.strip():
+            raise ValueError(
+                "OCEANBASE_HOST must be non-empty when DATABASE_PROVIDER=oceanbase. "
+                "Use DATABASE_PROVIDER=seekdb for embedded on-disk storage."
+            )
+        return value
+
+    @model_validator(mode="after")
+    def _reject_oceanbase_path_env(self):
+        # OCEANBASE_PATH is a seekdb concept (the on-disk data directory).
+        # SeekDBConfig (subclass) keeps it as a valid fallback alias for
+        # SEEKDB_PATH; the OceanBase remote-cluster provider rejects it so
+        # users don't silently get embedded-mode behaviour from a misnamed env.
+        if type(self) is OceanBaseConfig and os.environ.get("OCEANBASE_PATH"):
+            raise ValueError(
+                "OCEANBASE_PATH is not accepted when DATABASE_PROVIDER=oceanbase. "
+                "Unset it, or switch to DATABASE_PROVIDER=seekdb (with SEEKDB_PATH) "
+                "for embedded on-disk storage."
+            )
+        return self
+
+
     port: str = Field(
         default="2881",
         validation_alias=AliasChoices(
@@ -282,11 +315,12 @@ class SeekDBConfig(OceanBaseConfig):
     when you want zero-ops local storage; use ``oceanbase`` when you point at a
     remote OceanBase cluster.
 
-    The two configs share every field; ``SeekDBConfig`` only differs in:
-      - provider name (``"seekdb"``)
-      - embedded-mode defaults (empty ``host``, on-disk ``ob_path``)
-      - additional ``SEEKDB_*`` env var aliases so users can configure seekdb
-        without thinking in OceanBase variable names
+    **Namespace isolation:** ``SeekDBConfig`` reads only ``SEEKDB_*`` env
+    variables (plus the generic ``VECTOR_STORE_*`` / ``SPARSE_VECTOR_ENABLE``
+    feature toggles). It deliberately does NOT fall back to ``OCEANBASE_*``
+    keys — that namespace is reserved for the remote-cluster provider. This
+    keeps a seekdb-named ``.env`` self-contained and makes the operative
+    config obvious from the keys alone.
     """
 
     _provider_name = "seekdb"
@@ -301,7 +335,6 @@ class SeekDBConfig(OceanBaseConfig):
             "collection_name",
             "VECTOR_STORE_COLLECTION_NAME",
             "SEEKDB_COLLECTION",
-            "OCEANBASE_COLLECTION",
         ),
         description="Default name for the collection",
     )
@@ -311,7 +344,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "host",
             "SEEKDB_HOST",
-            "OCEANBASE_HOST",
         ),
         description=(
             "Database server host. Leave empty (default) for embedded seekdb; "
@@ -325,7 +357,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "ob_path",
             "SEEKDB_PATH",
-            "OCEANBASE_PATH",
         ),
         description="On-disk directory for embedded seekdb data files",
     )
@@ -335,7 +366,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "port",
             "SEEKDB_PORT",
-            "OCEANBASE_PORT",
         ),
         description="Database server port (ignored in embedded mode)",
     )
@@ -344,7 +374,6 @@ class SeekDBConfig(OceanBaseConfig):
         default="root@test",
         validation_alias=AliasChoices(
             "SEEKDB_USER",
-            "OCEANBASE_USER",
             "user",  # avoid using system USER environment variable first
         ),
         description="Database username (ignored in embedded mode)",
@@ -355,7 +384,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "password",
             "SEEKDB_PASSWORD",
-            "OCEANBASE_PASSWORD",
         ),
         description="Database password (ignored in embedded mode)",
     )
@@ -365,7 +393,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "db_name",
             "SEEKDB_DATABASE",
-            "OCEANBASE_DATABASE",
         ),
         description="Database name",
     )
@@ -375,7 +402,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "index_type",
             "SEEKDB_INDEX_TYPE",
-            "OCEANBASE_INDEX_TYPE",
         ),
         description="Type of vector index (HNSW, IVF, FLAT, etc.)",
     )
@@ -385,7 +411,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "vidx_metric_type",
             "SEEKDB_VECTOR_METRIC_TYPE",
-            "OCEANBASE_VECTOR_METRIC_TYPE",
         ),
         description="Distance metric (l2, inner_product, cosine)",
     )
@@ -395,21 +420,18 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "embedding_model_dims",
             "SEEKDB_EMBEDDING_MODEL_DIMS",
-            "OCEANBASE_EMBEDDING_MODEL_DIMS",
         ),
         description="Dimension of vectors",
     )
 
     # --- Schema-shape fields ------------------------------------------------
-    # These describe the column names PowerMem reads / writes. They rarely
-    # change, but expose SEEKDB_* aliases so a seekdb-named .env stays
-    # internally consistent (no mixing of SEEKDB_* and OCEANBASE_* keys).
+    # Column names PowerMem reads / writes. SEEKDB_* only — keeps a seekdb-
+    # named .env self-contained.
     primary_field: str = Field(
         default="id",
         validation_alias=AliasChoices(
             "primary_field",
             "SEEKDB_PRIMARY_FIELD",
-            "OCEANBASE_PRIMARY_FIELD",
         ),
         description="Primary key field name",
     )
@@ -419,7 +441,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "vector_field",
             "SEEKDB_VECTOR_FIELD",
-            "OCEANBASE_VECTOR_FIELD",
         ),
         description="Vector column name",
     )
@@ -429,7 +450,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "text_field",
             "SEEKDB_TEXT_FIELD",
-            "OCEANBASE_TEXT_FIELD",
         ),
         description="Text column name",
     )
@@ -439,7 +459,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "metadata_field",
             "SEEKDB_METADATA_FIELD",
-            "OCEANBASE_METADATA_FIELD",
         ),
         description="Metadata column name",
     )
@@ -449,7 +468,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "vidx_name",
             "SEEKDB_VIDX_NAME",
-            "OCEANBASE_VIDX_NAME",
         ),
         description="Vector index name",
     )
@@ -463,7 +481,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "pool_recycle",
             "SEEKDB_POOL_RECYCLE",
-            "OCEANBASE_POOL_RECYCLE",
         ),
         description=(
             "SQLAlchemy pool_recycle in seconds (prevents stale connections). "
@@ -476,7 +493,6 @@ class SeekDBConfig(OceanBaseConfig):
         validation_alias=AliasChoices(
             "pool_pre_ping",
             "SEEKDB_POOL_PRE_PING",
-            "OCEANBASE_POOL_PRE_PING",
         ),
         description=(
             "SQLAlchemy pool_pre_ping (tests connections before use). "
@@ -485,30 +501,31 @@ class SeekDBConfig(OceanBaseConfig):
     )
 
     # --- Hybrid / sparse retrieval toggles ----------------------------------
+    # SPARSE_VECTOR_ENABLE is a generic feature toggle (not OceanBase-
+    # namespaced) so it is shared by all providers and kept here.
     include_sparse: bool = Field(
         default=False,
         validation_alias=AliasChoices(
             "include_sparse",
             "SEEKDB_INCLUDE_SPARSE",
-            "OCEANBASE_INCLUDE_SPARSE",
             "SPARSE_VECTOR_ENABLE",
         ),
         description="Whether to include sparse vector support",
     )
 
     enable_native_hybrid: bool = Field(
-        default=False,
+        default=True,
         validation_alias=AliasChoices(
             "enable_native_hybrid",
             "SEEKDB_ENABLE_NATIVE_HYBRID",
-            "OCEANBASE_ENABLE_NATIVE_HYBRID",
         ),
         description=(
-            "Use the OceanBase / seekdb native hybrid-search SQL extension "
-            "instead of the Python-side hybrid pipeline. Requires a backend "
-            "that ships the extension (OceanBase ≥4.5, seekdb ≥1.3)."
+            "Use the seekdb native hybrid-search SQL extension instead of "
+            "the Python-side hybrid pipeline. Enabled by default for seekdb "
+            "≥1.3 (the version this branch depends on)."
         ),
     )
+
 
 
 class SeekDBGraphConfig(OceanBaseGraphConfig):

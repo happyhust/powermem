@@ -7,9 +7,14 @@ only configuration differs. These tests pin that contract:
   - ``SeekDBConfig()`` boots in embedded mode (no host, on-disk ``ob_path``)
   - ``MemoryConfig()`` with no env vars picks ``seekdb`` as the default
   - ``DatabaseSettings`` reads ``seekdb`` as its default provider
+  - **Namespace isolation**: SEEKDB_* and OCEANBASE_* envs are NOT shared
+    (each provider reads only its own namespace)
+  - OceanBase requires a non-empty host and rejects OCEANBASE_PATH
 """
 
 from __future__ import annotations
+
+import pytest
 
 
 def test_seekdb_vector_provider_is_registered():
@@ -72,12 +77,6 @@ def test_seekdb_config_reads_SEEKDB_env_aliases(monkeypatch):
 
 
 def test_seekdb_config_reads_SEEKDB_schema_shape_aliases(monkeypatch):
-    """Schema-shape fields (column/index names) must also accept SEEKDB_*.
-
-    Without these aliases users have to mix SEEKDB_* and OCEANBASE_* keys in
-    the same .env to fully configure seekdb — exactly the asymmetry we want
-    to avoid.
-    """
     monkeypatch.setenv("SEEKDB_TEXT_FIELD", "doc")
     monkeypatch.setenv("SEEKDB_VECTOR_FIELD", "vec")
     monkeypatch.setenv("SEEKDB_PRIMARY_FIELD", "row_id")
@@ -94,28 +93,13 @@ def test_seekdb_config_reads_SEEKDB_schema_shape_aliases(monkeypatch):
     assert cfg.vidx_name == "custom_vidx"
 
 
-def test_seekdb_config_falls_back_to_OCEANBASE_schema_shape_aliases(monkeypatch):
-    """OCEANBASE_* must still work for users migrating an existing .env."""
-    monkeypatch.delenv("SEEKDB_TEXT_FIELD", raising=False)
-    monkeypatch.delenv("SEEKDB_VECTOR_FIELD", raising=False)
-    monkeypatch.setenv("OCEANBASE_TEXT_FIELD", "legacy_doc")
-    monkeypatch.setenv("OCEANBASE_VECTOR_FIELD", "legacy_vec")
-
-    from powermem.storage.config.oceanbase import SeekDBConfig
-
-    cfg = SeekDBConfig()
-    assert cfg.text_field == "legacy_doc"
-    assert cfg.vector_field == "legacy_vec"
-
-
 def test_seekdb_config_reads_SEEKDB_pool_and_hybrid_aliases(monkeypatch):
-    """Pool tuning, sparse toggle, and native hybrid switch all accept
-    SEEKDB_* — closes the last gap with OCEANBASE_* parity.
-    """
     monkeypatch.setenv("SEEKDB_POOL_RECYCLE", "1800")
     monkeypatch.setenv("SEEKDB_POOL_PRE_PING", "false")
     monkeypatch.setenv("SEEKDB_INCLUDE_SPARSE", "true")
-    monkeypatch.setenv("SEEKDB_ENABLE_NATIVE_HYBRID", "true")
+    # SEEKDB_ENABLE_NATIVE_HYBRID defaults to True; explicitly disable to
+    # prove the alias does bind.
+    monkeypatch.setenv("SEEKDB_ENABLE_NATIVE_HYBRID", "false")
 
     from powermem.storage.config.oceanbase import SeekDBConfig
 
@@ -123,28 +107,107 @@ def test_seekdb_config_reads_SEEKDB_pool_and_hybrid_aliases(monkeypatch):
     assert cfg.pool_recycle == 1800
     assert cfg.pool_pre_ping is False
     assert cfg.include_sparse is True
-    assert cfg.enable_native_hybrid is True
+    assert cfg.enable_native_hybrid is False
 
 
-def test_seekdb_config_OCEANBASE_pool_and_hybrid_aliases_still_resolve(monkeypatch):
-    """Migration safety: existing OCEANBASE_* keys still resolve under seekdb."""
+def test_seekdb_native_hybrid_defaults_to_true(monkeypatch):
+    """SEEKDB_ENABLE_NATIVE_HYBRID defaults to True (seekdb ≥1.3)."""
+    monkeypatch.delenv("SEEKDB_ENABLE_NATIVE_HYBRID", raising=False)
+    monkeypatch.delenv("OCEANBASE_ENABLE_NATIVE_HYBRID", raising=False)
+
+    from powermem.storage.config.oceanbase import SeekDBConfig
+
+    assert SeekDBConfig().enable_native_hybrid is True
+
+
+# ---------------------------------------------------------------------------
+# Namespace isolation: SeekDBConfig must NOT read OCEANBASE_* env vars.
+# ---------------------------------------------------------------------------
+
+
+def test_seekdb_config_ignores_OCEANBASE_env_vars(monkeypatch):
+    """OCEANBASE_* keys are reserved for the oceanbase provider; SeekDBConfig
+    must not bleed them in.
+    """
+    monkeypatch.delenv("SEEKDB_PATH", raising=False)
+    monkeypatch.delenv("SEEKDB_DATABASE", raising=False)
+    monkeypatch.delenv("SEEKDB_TEXT_FIELD", raising=False)
     monkeypatch.delenv("SEEKDB_POOL_RECYCLE", raising=False)
-    monkeypatch.delenv("SEEKDB_INCLUDE_SPARSE", raising=False)
-    monkeypatch.setenv("OCEANBASE_POOL_RECYCLE", "7200")
-    monkeypatch.setenv("OCEANBASE_INCLUDE_SPARSE", "true")
+    monkeypatch.setenv("OCEANBASE_PATH", "/should/not/leak")
+    monkeypatch.setenv("OCEANBASE_DATABASE", "leaked_db")
+    monkeypatch.setenv("OCEANBASE_TEXT_FIELD", "leaked_doc")
+    monkeypatch.setenv("OCEANBASE_POOL_RECYCLE", "9999")
 
     from powermem.storage.config.oceanbase import SeekDBConfig
 
     cfg = SeekDBConfig()
-    assert cfg.pool_recycle == 7200
-    assert cfg.include_sparse is True
+    assert cfg.ob_path == "./seekdb_data"        # default, not the OCEANBASE_ value
+    assert cfg.db_name == "test"                  # default
+    assert cfg.text_field == "document"           # default
+    assert cfg.pool_recycle == 3600               # default
+
+
+# ---------------------------------------------------------------------------
+# OceanBase host required + OCEANBASE_PATH rejection.
+# ---------------------------------------------------------------------------
+
+
+def test_oceanbase_default_host_is_127_0_0_1(monkeypatch):
+    monkeypatch.delenv("OCEANBASE_HOST", raising=False)
+    monkeypatch.delenv("OCEANBASE_PATH", raising=False)
+
+    from powermem.storage.config.oceanbase import OceanBaseConfig
+
+    assert OceanBaseConfig().host == "127.0.0.1"
+
+
+def test_oceanbase_rejects_empty_host(monkeypatch):
+    monkeypatch.delenv("OCEANBASE_PATH", raising=False)
+
+    from powermem.storage.config.oceanbase import OceanBaseConfig
+
+    with pytest.raises(ValueError, match="OCEANBASE_HOST"):
+        OceanBaseConfig(host="")
+
+
+def test_oceanbase_rejects_OCEANBASE_PATH_env(monkeypatch):
+    """Setting OCEANBASE_PATH while using DATABASE_PROVIDER=oceanbase is a
+    config error — that env var is the seekdb on-disk path, not a remote
+    cluster setting.
+    """
+    monkeypatch.setenv("OCEANBASE_PATH", "/some/seekdb/dir")
+
+    from powermem.storage.config.oceanbase import OceanBaseConfig
+
+    with pytest.raises(ValueError, match="OCEANBASE_PATH"):
+        OceanBaseConfig()
+
+
+def test_seekdb_config_unaffected_by_OCEANBASE_PATH_env_rejection(monkeypatch):
+    """The OCEANBASE_PATH-rejection model_validator on OceanBaseConfig must
+    NOT fire for the SeekDBConfig subclass — for seekdb, that env var is
+    ignored (per namespace isolation) and embedded mode keeps working.
+    """
+    monkeypatch.setenv("OCEANBASE_PATH", "/some/seekdb/dir")
+
+    from powermem.storage.config.oceanbase import SeekDBConfig
+
+    cfg = SeekDBConfig()  # must not raise
+    # OCEANBASE_PATH is ignored — seekdb uses its own SEEKDB_PATH default.
+    assert cfg.ob_path == "./seekdb_data"
+
+
+# ---------------------------------------------------------------------------
+# Zero-config MemoryConfig + DatabaseSettings defaults.
+# ---------------------------------------------------------------------------
 
 
 def test_memory_config_default_storage_is_seekdb(monkeypatch):
-    """The headline #-> seekdb-default contract for zero-config startup."""
+    """The headline zero-config-default contract."""
     monkeypatch.delenv("DATABASE_PROVIDER", raising=False)
     monkeypatch.delenv("OCEANBASE_HOST", raising=False)
     monkeypatch.delenv("SEEKDB_HOST", raising=False)
+    monkeypatch.delenv("OCEANBASE_PATH", raising=False)
 
     from powermem.configs import MemoryConfig
     from powermem.storage.config.oceanbase import SeekDBConfig
