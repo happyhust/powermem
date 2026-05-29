@@ -44,7 +44,7 @@ PowerMem ships first-party plugins for the most common AI clients. All of them p
 | Client / framework | One-line install | Mode |
 |--------------------|------------------|------|
 | OpenClaw (ClawdBot) | `openclaw plugins install memory-powermem` | CLI (default), HTTP optional |
-| Claude Code | `git clone https://github.com/oceanbase/powermem && claude --plugin-dir powermem/apps/claude-code-plugin` | HTTP (default), MCP optional |
+| Claude Code | `git clone https://github.com/oceanbase/powermem`, then tell Claude Code: *"Read and follow `apps/claude-code-plugin/SETUP.md`"* ([details](#claude-code)) | HTTP (default), MCP optional |
 | Cursor / VS Code / Codex / Windsurf / GitHub Copilot | Install the [PowerMem VS Code extension](apps/vscode-extension/) and run **PowerMem: Link to AI tools** | MCP or HTTP, per client |
 | Claude Desktop / Cline / any MCP client | `uvx powermem-mcp sse` | MCP (SSE / stdio / streamable-http) |
 | LangChain / LangGraph | `pip install powermem`, see [examples](#examples) | Python SDK |
@@ -68,27 +68,26 @@ Defaults to **CLI mode** — the plugin invokes a bundled `pmem` against SQLite 
 
 ### Claude Code
 
-```bash
-# From a clone of this repo
-claude --plugin-dir /path/to/powermem/apps/claude-code-plugin
+#### Fastest path — let Claude Code set itself up
 
-# Or unpack a packaged release zip and pass --plugin-dir to it
-make package-claude-plugin   # builds apps/claude-code-plugin/dist/<version>.zip
-```
-
-HTTP mode is on by default:
-
-- `UserPromptSubmit` -> `POST /api/v1/memories/search` and the top results are injected as `additionalContext`.
-- `SessionEnd` / `PostCompact` -> `POST /api/v1/memories` writes the transcript or compact summary.
-- No MCP setup, no Python needed on the user's machine (hooks ship as native binaries under `hooks/bin/`).
-
-Switch to MCP mode for in-chat `search_memories` / `add_memory` tools:
+First download the code and enter the directory:
 
 ```bash
-bash scripts/apply-connection-mode.sh mcp
+git clone https://github.com/oceanbase/powermem
+cd powermem
 ```
 
-Full reference: [`apps/claude-code-plugin/README.md`](apps/claude-code-plugin/README.md).
+Then open Claude Code in your terminal and paste this one line:
+
+```text
+Read and follow apps/claude-code-plugin/SETUP.md to set up PowerMem memory for Claude Code.
+```
+
+Claude Code reads [`apps/claude-code-plugin/SETUP.md`](apps/claude-code-plugin/SETUP.md), asks you for the few required secrets, and wires everything up end-to-end.
+
+#### Manual setup
+
+Prefer to wire it by hand? See the full walkthrough — environment variables, MCP mode, the `remember` / `recall` skills, Windows hooks, troubleshooting, and uninstall — in **[docs/integrations/claude_code.md](docs/integrations/claude_code.md)**.
 
 ### Cursor, VS Code, Codex, Windsurf, GitHub Copilot
 
@@ -107,7 +106,7 @@ The same extension also provides **Query memories**, **Add selection to memory**
 ### Any MCP client (Claude Desktop, Cline, …)
 
 ```bash
-uvx powermem-mcp sse                  # SSE on :8000 (recommended)
+uvx powermem-mcp sse                  # SSE on :8848 (recommended)
 uvx powermem-mcp stdio                # stdio
 uvx powermem-mcp streamable-http      # streamable HTTP
 ```
@@ -117,7 +116,7 @@ Client config (Claude Desktop and most MCP clients):
 ```json
 {
   "mcpServers": {
-    "powermem": { "url": "http://localhost:8000/mcp" }
+    "powermem": { "url": "http://localhost:8848/mcp" }
   }
 }
 ```
@@ -204,7 +203,7 @@ Full reference: [CLI usage](docs/guides/0012-cli_usage.md).
 Uses the same `.env` as the SDK. Dashboard is served under `/dashboard/`.
 
 ```bash
-powermem-server --host 0.0.0.0 --port 8000
+powermem-server --host 0.0.0.0 --port 8848
 ```
 
 Docker / Compose: see [API Server](docs/api/0005-api_server.md) and [Docker & deployment](docker/README.md). The official image is `oceanbase/powermem-server:latest`.
@@ -239,6 +238,7 @@ Docker / Compose: see [API Server](docs/api/0005-api_server.md) and [Docker & de
 - [CLI](docs/guides/0012-cli_usage.md) — `pmem` commands, interactive shell, backup and migration
 - [Multi-agent](docs/guides/0005-multi_agent.md) — scopes, isolation, and cross-agent sharing
 - [Integrations](docs/guides/0009-integrations.md) — LangChain and other framework wiring
+- [Ecosystem integrations](docs/integrations/overview.md) — AI clients & IDEs ([Claude Code](docs/integrations/claude_code.md), …)
 - [Docker & deployment](docker/README.md) — images, Compose, and running the API server
 - [Development](docs/development/overview.md) — local setup, tests, and contributing
 

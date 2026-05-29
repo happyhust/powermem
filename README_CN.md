@@ -68,27 +68,51 @@ openclaw plugins install memory-powermem
 
 ### Claude Code
 
+五步即可把 Claude Code 接入 PowerMem。默认是 **HTTP 模式** —— 记忆通过 hook 静默工作,对话里不出现工具;需要显式工具时再切到 MCP 模式(最后一步)。
+
+**第 1 步 —— 启动 PowerMem 后端。** 把 [.env.example](.env.example) 复制为 `.env`,填好 LLM API key,然后启动 HTTP 服务。hook 默认连 `http://localhost:8848`。
+
 ```bash
-# 从本仓库直接加载（开发/调试推荐）
+powermem-server --host 0.0.0.0 --port 8848
+```
+
+**第 2 步 —— 获取插件并编译 hook 二进制。** hook 以原生二进制分发,因此运行 Claude Code 的机器**无需 Python**。用 Go 1.22+ 编译一次即可(或执行 `make package-claude-plugin`,它会在打包前自动编译)。
+
+```bash
+git clone https://github.com/oceanbase/powermem
+cd powermem
+make build-claude-hook        # 产物在 apps/claude-code-plugin/hooks/bin/
+```
+
+**第 3 步 —— 把插件加载进 Claude Code。**
+
+```bash
 claude --plugin-dir /path/to/powermem/apps/claude-code-plugin
-
-# 或者打包成 zip 发到目标机器，再 --plugin-dir 指向解压目录
-make package-claude-plugin   # 产物：apps/claude-code-plugin/dist/<version>.zip
 ```
 
-默认 **HTTP 模式**，开箱即用：
-
-- `UserPromptSubmit` → `POST /api/v1/memories/search`，命中结果通过 `additionalContext` 注入当前对话；
-- `SessionEnd` / `PostCompact` → `POST /api/v1/memories`，把整段对话或压缩摘要写回记忆；
-- 终端机器**无需 Python**，hook 是预编译的原生二进制（macOS / Linux / Windows）。
-
-如果想让 Claude 在对话中显式调用 `search_memories` / `add_memory` 工具，切到 **MCP 模式** 即可：
+**第 4 步 —— (可选)指向团队服务并设置身份。** 本地服务用默认值即可;连远程服务时按需覆盖:
 
 ```bash
-bash scripts/apply-connection-mode.sh mcp
+export POWERMEM_BASE_URL=https://powermem.example.com   # 默认:http://localhost:8848
+export POWERMEM_API_KEY=...                             # 仅当服务端开启鉴权时
+export POWERMEM_USER_ID=alice                           # 默认:操作系统登录名
 ```
 
-完整说明：[`apps/claude-code-plugin/README.md`](apps/claude-code-plugin/README.md)。
+**第 5 步 —— 开始使用。** 默认 HTTP 模式下无需任何额外操作:
+
+- `UserPromptSubmit` → `POST /api/v1/memories/search`,命中结果通过 `additionalContext` 注入当前对话(设 `POWERMEM_PROMPT_SEARCH=0` 可按轮关闭);
+- `SessionEnd` / `PostCompact` → `POST /api/v1/memories`,把整段对话或压缩摘要写回记忆。
+
+**验证:** 结束会话(或执行 `/compact`)后,在服务端日志中查看是否有 `POST /api/v1/memories`;在 Claude Code 里输入 `/hooks` 确认这些 hook 已注册。
+
+**可选 —— MCP 模式** 会额外提供对话内的 `search_memories` / `add_memory` 工具,以及 `/memory-powermem:remember` 与 `recall` 技能:
+
+```bash
+cd apps/claude-code-plugin
+bash scripts/apply-connection-mode.sh mcp   # 之后重启 Claude Code
+```
+
+完整说明:[Claude Code 集成指南](docs/integrations/claude_code.md) · [`apps/claude-code-plugin/README.md`](apps/claude-code-plugin/README.md)。
 
 ### Cursor / VS Code / Codex / Windsurf / GitHub Copilot
 
@@ -107,7 +131,7 @@ bash scripts/apply-connection-mode.sh mcp
 ### 任意 MCP 客户端（Claude Desktop、Cline……）
 
 ```bash
-uvx powermem-mcp sse                  # SSE，默认 :8000（推荐）
+uvx powermem-mcp sse                  # SSE，默认 :8848（推荐）
 uvx powermem-mcp stdio                # stdio
 uvx powermem-mcp streamable-http      # streamable HTTP
 ```
@@ -117,7 +141,7 @@ Claude Desktop / 多数 MCP 客户端的配置：
 ```json
 {
   "mcpServers": {
-    "powermem": { "url": "http://localhost:8000/mcp" }
+    "powermem": { "url": "http://localhost:8848/mcp" }
   }
 }
 ```
@@ -204,7 +228,7 @@ pmem shell                           # 交互式 REPL
 与 SDK 共用 `.env`，Dashboard 路径 `/dashboard/`。
 
 ```bash
-powermem-server --host 0.0.0.0 --port 8000
+powermem-server --host 0.0.0.0 --port 8848
 ```
 
 Docker / Compose 部署见 [API Server](docs/api/0005-api_server.md) 与 [Docker 说明](docker/README.md)。官方镜像：`oceanbase/powermem-server:latest`。
@@ -239,6 +263,7 @@ Docker / Compose 部署见 [API Server](docs/api/0005-api_server.md) 与 [Docker
 - [CLI 使用指南](docs/guides/0012-cli_usage.md) — `pmem`、交互 Shell、备份与迁移
 - [多智能体](docs/guides/0005-multi_agent.md) — 作用域、隔离与跨智能体共享
 - [集成说明](docs/guides/0009-integrations.md) — LangChain 等框架接入
+- [生态集成](docs/integrations/overview.md) — AI 客户端与 IDE（[Claude Code](docs/integrations/claude_code.md) 等）
 - [Docker 与部署](docker/README.md) — 镜像、Compose、运行 API 服务
 - [开发说明](docs/development/overview.md) — 本地开发、测试与贡献
 

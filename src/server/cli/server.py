@@ -71,7 +71,7 @@ def server(host, port, workers, reload, log_level):
     Start the PowerMem API server.
     
     Example:
-        powermem-server --host 0.0.0.0 --port 8000 --reload
+        powermem-server --host 0.0.0.0 --port 8848 --reload
     """
     import sys
 
