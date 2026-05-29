@@ -71,6 +71,43 @@ def test_seekdb_config_reads_SEEKDB_env_aliases(monkeypatch):
     assert cfg.db_name == "my_powermem"
 
 
+def test_seekdb_config_reads_SEEKDB_schema_shape_aliases(monkeypatch):
+    """Schema-shape fields (column/index names) must also accept SEEKDB_*.
+
+    Without these aliases users have to mix SEEKDB_* and OCEANBASE_* keys in
+    the same .env to fully configure seekdb — exactly the asymmetry we want
+    to avoid.
+    """
+    monkeypatch.setenv("SEEKDB_TEXT_FIELD", "doc")
+    monkeypatch.setenv("SEEKDB_VECTOR_FIELD", "vec")
+    monkeypatch.setenv("SEEKDB_PRIMARY_FIELD", "row_id")
+    monkeypatch.setenv("SEEKDB_METADATA_FIELD", "meta")
+    monkeypatch.setenv("SEEKDB_VIDX_NAME", "custom_vidx")
+
+    from powermem.storage.config.oceanbase import SeekDBConfig
+
+    cfg = SeekDBConfig()
+    assert cfg.text_field == "doc"
+    assert cfg.vector_field == "vec"
+    assert cfg.primary_field == "row_id"
+    assert cfg.metadata_field == "meta"
+    assert cfg.vidx_name == "custom_vidx"
+
+
+def test_seekdb_config_falls_back_to_OCEANBASE_schema_shape_aliases(monkeypatch):
+    """OCEANBASE_* must still work for users migrating an existing .env."""
+    monkeypatch.delenv("SEEKDB_TEXT_FIELD", raising=False)
+    monkeypatch.delenv("SEEKDB_VECTOR_FIELD", raising=False)
+    monkeypatch.setenv("OCEANBASE_TEXT_FIELD", "legacy_doc")
+    monkeypatch.setenv("OCEANBASE_VECTOR_FIELD", "legacy_vec")
+
+    from powermem.storage.config.oceanbase import SeekDBConfig
+
+    cfg = SeekDBConfig()
+    assert cfg.text_field == "legacy_doc"
+    assert cfg.vector_field == "legacy_vec"
+
+
 def test_memory_config_default_storage_is_seekdb(monkeypatch):
     """The headline #-> seekdb-default contract for zero-config startup."""
     monkeypatch.delenv("DATABASE_PROVIDER", raising=False)

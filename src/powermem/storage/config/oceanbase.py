@@ -400,6 +400,60 @@ class SeekDBConfig(OceanBaseConfig):
         description="Dimension of vectors",
     )
 
+    # --- Schema-shape fields ------------------------------------------------
+    # These describe the column names PowerMem reads / writes. They rarely
+    # change, but expose SEEKDB_* aliases so a seekdb-named .env stays
+    # internally consistent (no mixing of SEEKDB_* and OCEANBASE_* keys).
+    primary_field: str = Field(
+        default="id",
+        validation_alias=AliasChoices(
+            "primary_field",
+            "SEEKDB_PRIMARY_FIELD",
+            "OCEANBASE_PRIMARY_FIELD",
+        ),
+        description="Primary key field name",
+    )
+
+    vector_field: str = Field(
+        default="embedding",
+        validation_alias=AliasChoices(
+            "vector_field",
+            "SEEKDB_VECTOR_FIELD",
+            "OCEANBASE_VECTOR_FIELD",
+        ),
+        description="Vector column name",
+    )
+
+    text_field: str = Field(
+        default="document",
+        validation_alias=AliasChoices(
+            "text_field",
+            "SEEKDB_TEXT_FIELD",
+            "OCEANBASE_TEXT_FIELD",
+        ),
+        description="Text column name",
+    )
+
+    metadata_field: str = Field(
+        default="metadata",
+        validation_alias=AliasChoices(
+            "metadata_field",
+            "SEEKDB_METADATA_FIELD",
+            "OCEANBASE_METADATA_FIELD",
+        ),
+        description="Metadata column name",
+    )
+
+    vidx_name: str = Field(
+        default="vidx",
+        validation_alias=AliasChoices(
+            "vidx_name",
+            "SEEKDB_VIDX_NAME",
+            "OCEANBASE_VIDX_NAME",
+        ),
+        description="Vector index name",
+    )
+
 
 class SeekDBGraphConfig(OceanBaseGraphConfig):
     """Configuration for embedded seekdb graph store.
