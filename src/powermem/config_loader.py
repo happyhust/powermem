@@ -123,7 +123,7 @@ class DatabaseSettings(_BasePowermemSettings):
     model_config = settings_config()
 
     provider: str = Field(
-        default="seekdb",
+        default="oceanbase",
         validation_alias=AliasChoices("DATABASE_PROVIDER"),
     )
 
@@ -704,7 +704,7 @@ def load_config_from_env() -> Dict[str, Any]:
 class CreateConfigOptions(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
-    database_provider: str = "seekdb"
+    database_provider: str = "oceanbase"
     llm_provider: str = "qwen"
     embedding_provider: str = "qwen"
     database_config: Dict[str, Any] = Field(default_factory=dict)
@@ -724,7 +724,7 @@ class CreateConfigOptions(BaseModel):
 
 
 def create_config(
-    database_provider: str = "seekdb",
+    database_provider: str = "oceanbase",
     llm_provider: str = "qwen",
     embedding_provider: str = "qwen",
     database_config: Optional[Dict[str, Any]] = None,
@@ -747,7 +747,7 @@ def create_config(
     need a minimal manual config.
 
     Args:
-        database_provider: Database provider ('seekdb', 'sqlite', 'oceanbase', 'postgres')
+        database_provider: Database provider ('oceanbase', 'sqlite', 'postgres')
         llm_provider: LLM provider ('qwen', 'openai', etc.)
         embedding_provider: Embedding provider ('qwen', 'openai', etc.)
         database_config: Vector store configuration dictionary
@@ -772,7 +772,7 @@ def create_config(
         from powermem import Memory
         
         config = create_config(
-            database_provider='seekdb',
+            database_provider='oceanbase',
             llm_provider='qwen',
             llm_api_key='your_key',
             llm_model='qwen-plus'

@@ -148,7 +148,7 @@ End-to-end runnable demos:
 
 ## Quick start (Python SDK)
 
-**Prerequisites:** Copy [.env.example](.env.example) to `.env` and set your **LLM** API key — that is the only required credential. The default database is **embedded seekdb** (OceanBase running locally — same engine, no separate server, data on disk under `./seekdb_data`); flip `DATABASE_PROVIDER=oceanbase` to point at a remote cluster, or use `sqlite` / `postgres` if you prefer. The default embedder is a local `all-MiniLM-L6-v2` model (384 dims) that needs no API key and auto-downloads on first use. Need to tune providers or unlock advanced features? Copy [.env.example.full](.env.example.full) instead — it documents every available knob, grouped by component. After install, `pmem config init` walks you through the same setup interactively. See [Getting started](docs/guides/0001-getting_started.md).
+**Prerequisites:** Copy [.env.example](.env.example) to `.env` and set your **LLM** API key — that is the only required credential. The default storage is the **OceanBase** provider with no host configured, which boots **embedded seekdb** on disk (same engine, no separate server, data under `./seekdb_data`); set `OCEANBASE_HOST` to point at a remote OceanBase cluster instead, or switch to `sqlite` / `postgres`. The default embedder is a local `all-MiniLM-L6-v2` model (384 dims) that needs no API key and auto-downloads on first use. Need to tune providers or unlock advanced features? Copy [.env.example.full](.env.example.full) instead — it documents every available knob, grouped by component. After install, `pmem config init` walks you through the same setup interactively. See [Getting started](docs/guides/0001-getting_started.md).
 
 ### Install
 

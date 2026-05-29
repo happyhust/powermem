@@ -8,12 +8,7 @@ import importlib
 
 # Import all provider configs to trigger auto-registration
 from powermem.storage.config.base import BaseVectorStoreConfig, BaseGraphStoreConfig
-from powermem.storage.config.oceanbase import (  # noqa: F401 — populates registry
-    OceanBaseConfig,
-    OceanBaseGraphConfig,
-    SeekDBConfig,
-    SeekDBGraphConfig,
-)
+from powermem.storage.config.oceanbase import OceanBaseConfig, OceanBaseGraphConfig
 from powermem.storage.config.pgvector import PGVectorConfig
 from powermem.storage.config.sqlite import SQLiteConfig
 

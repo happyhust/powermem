@@ -148,7 +148,7 @@ pip install powermem langchain langchain-openai
 
 ## 快速开始（Python SDK）
 
-**前置条件：** 将 [.env.example](.env.example) 复制为 `.env`，仅需配置 **LLM** 的 API key。默认数据库是 **嵌入式 seekdb**（即 OceanBase 的本地模式，引擎与 SQL 完全一致，无需额外启动数据库进程，数据落在 `./seekdb_data`）；如需连接远端 OceanBase 集群，将 `DATABASE_PROVIDER` 切换为 `oceanbase` 即可，也可改用 `sqlite` 或 `postgres`。默认 embedder 是本地的 `all-MiniLM-L6-v2`（384 维），无需 API key，首次使用时自动下载。如需调整 provider 或开启高级特性，可改用 [.env.example.full](.env.example.full)，其中按组件分组记录了所有可调参数。安装后执行 `pmem config init` 可交互式生成同样的配置。详见 [入门指南](docs/guides/0001-getting_started.md)。
+**前置条件：** 将 [.env.example](.env.example) 复制为 `.env`，仅需配置 **LLM** 的 API key。默认存储是 **OceanBase** provider 且未配置 host，会自动启动 **嵌入式 seekdb**（同一引擎与 SQL，无需额外数据库进程，数据落在 `./seekdb_data`）；如需连接远端 OceanBase 集群，设置 `OCEANBASE_HOST` 即可，也可改用 `sqlite` 或 `postgres`。默认 embedder 是本地的 `all-MiniLM-L6-v2`（384 维），无需 API key，首次使用时自动下载。如需调整 provider 或开启高级特性，可改用 [.env.example.full](.env.example.full)，其中按组件分组记录了所有可调参数。安装后执行 `pmem config init` 可交互式生成同样的配置。详见 [入门指南](docs/guides/0001-getting_started.md)。
 
 ### 安装
 

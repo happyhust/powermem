@@ -189,7 +189,7 @@ class Memory(MemoryBase):
             logger.debug(f"Timezone set from config: {timezone_config}")
         
         # Extract providers from config with fallbacks
-        self.storage_type = storage_type or self._get_provider('vector_store', 'seekdb')
+        self.storage_type = storage_type or self._get_provider('vector_store', 'oceanbase')
         self.llm_provider = llm_provider or self._get_provider('llm', 'mock')
         self.embedding_provider = embedding_provider or self._get_provider('embedder', 'mock')
 
