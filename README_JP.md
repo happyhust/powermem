@@ -148,7 +148,7 @@ pip install powermem langchain langchain-openai
 
 ## クイックスタート（Python SDK）
 
-**前提:** [.env.example](.env.example) を `.env` にコピーし、**LLM** の API キーだけを設定してください。デフォルト DB は **埋め込み SeekDB**（OceanBase をローカルで起動したもので、エンジン・SQL は完全に同一、別プロセスのデータベース不要、データは `./seekdb_data` に保存）。リモートの OceanBase クラスタに接続したい場合は `DATABASE_PROVIDER=oceanbase` に切り替えるだけで、`sqlite` や `postgres` も選択可能です。デフォルトの埋め込みモデルはローカル実行の `all-MiniLM-L6-v2`（384 次元）で、API キー不要・初回利用時に自動ダウンロードされます。プロバイダ切り替えや高度な設定が必要な場合は [.env.example.full](.env.example.full) をコピーしてください。コンポーネントごとに全ての設定項目がまとめられています。インストール後は `pmem config init` で対話的に同じ設定を生成できます。詳しくは [はじめに](docs/guides/0001-getting_started.md) を参照してください。
+**前提:** [.env.example](.env.example) を `.env` にコピーし、**LLM** の API キーだけを設定してください。デフォルト DB は **埋め込み seekdb**（OceanBase をローカルで起動したもので、エンジン・SQL は完全に同一、別プロセスのデータベース不要、データは `./seekdb_data` に保存）。リモートの OceanBase クラスタに接続したい場合は `DATABASE_PROVIDER=oceanbase` に切り替えるだけで、`sqlite` や `postgres` も選択可能です。デフォルトの埋め込みモデルはローカル実行の `all-MiniLM-L6-v2`（384 次元）で、API キー不要・初回利用時に自動ダウンロードされます。プロバイダ切り替えや高度な設定が必要な場合は [.env.example.full](.env.example.full) をコピーしてください。コンポーネントごとに全ての設定項目がまとめられています。インストール後は `pmem config init` で対話的に同じ設定を生成できます。詳しくは [はじめに](docs/guides/0001-getting_started.md) を参照してください。
 
 ### インストール
 
@@ -226,7 +226,7 @@ Docker / Compose は [API Server](docs/api/0005-api_server.md) と [Docker READM
 | LLM | Anthropic、OpenAI、Azure OpenAI、Gemini、Qwen（+ ASR）、DeepSeek、Ollama、vLLM、SiliconFlow、Z.AI、LangChain ラッパー |
 | Embedding | OpenAI、Azure OpenAI、Qwen（+ VL マルチモーダル、スパース）、Gemini、Vertex AI、AWS Bedrock、Ollama、LM Studio、HuggingFace、Together、SiliconFlow、Z.AI、OceanBase MASS、LangChain ラッパー |
 | Rerank | Jina、Qwen、Z.AI、汎用 |
-| Storage | OceanBase（+ グラフ）、埋め込み SeekDB、PostgreSQL/pgvector、SQLite |
+| Storage | OceanBase（+ グラフ）、埋め込み seekdb、PostgreSQL/pgvector、SQLite |
 
 ---
 
@@ -254,7 +254,7 @@ Docker / Compose は [API Server](docs/api/0005-api_server.md) と [Docker READM
 | バージョン | 日付 | 内容 |
 |------------|------|------|
 | 1.2.0 | 2026-04 | 経験 + スキル 二層蒸留と `distill_all()`（自己進化型メモリ、AppWorld +15 pts）；OB MASS Embedding；Qwen VL マルチモーダル Embedding；OceanBase Zero Mode 互換；LOCOMO 精度を 87.79% に引き上げ |
-| 1.1.0 | 2026-04-02 | OceanBase 向けに埋め込み SeekDB（別途 DB サービス不要）；[IDE 連携](apps/README.md)（VS Code 拡張、Claude Code プラグイン） |
+| 1.1.0 | 2026-04-02 | OceanBase 向けに埋め込み seekdb（別途 DB サービス不要）；[IDE 連携](apps/README.md)（VS Code 拡張、Claude Code プラグイン） |
 | 1.0.0 | 2026-03-16 | CLI（`pmem`）：メモリ操作、設定、バックアップ/復元/マイグレーション、対話シェル、補完；Web Dashboard |
 | 0.5.0 | 2026-02-06 | SDK/API 設定の統一（pydantic-settings）；OceanBase native hybrid search；メモリクエリと一覧ソート；プロフィールの言語カスタマイズ |
 | 0.4.0 | 2026-01-20 | スパースベクトル混合検索；プロフィール起点のクエリ書き換え；スキーマ更新と移行ツール |

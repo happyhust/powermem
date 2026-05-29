@@ -1,6 +1,6 @@
 """Tests for the seekdb default vector store registration and zero-config wiring.
 
-SeekDB is OceanBase's embedded mode — same backend class, same SQL surface,
+seekdb is OceanBase's embedded mode — same backend class, same SQL surface,
 only configuration differs. These tests pin that contract:
 
   - the ``seekdb`` provider routes to ``OceanBaseVectorStore``
@@ -53,7 +53,7 @@ def test_seekdb_config_defaults_to_embedded_mode():
 
     cfg = SeekDBConfig()
 
-    # Empty host triggers embedded SeekDB inside OceanBaseVectorStore.
+    # Empty host triggers embedded seekdb inside OceanBaseVectorStore.
     assert cfg.host == ""
     assert cfg.ob_path == "./seekdb_data"
     assert cfg._provider_name == "seekdb"

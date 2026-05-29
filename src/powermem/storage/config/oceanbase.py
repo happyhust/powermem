@@ -35,7 +35,7 @@ class OceanBaseConfig(BaseVectorStoreConfig):
             "host",
             "OCEANBASE_HOST",
         ),
-        description="OceanBase server host (empty means embedded SeekDB mode)"
+        description="OceanBase server host (empty means embedded seekdb mode)"
     )
 
     ob_path: str = Field(
@@ -44,7 +44,7 @@ class OceanBaseConfig(BaseVectorStoreConfig):
             "ob_path",
             "OCEANBASE_PATH",
         ),
-        description="Path for embedded SeekDB data directory (used when host is empty)"
+        description="Path for embedded seekdb data directory (used when host is empty)"
     )
     
     port: str = Field(
@@ -275,9 +275,9 @@ class OceanBaseGraphConfig(BaseGraphStoreConfig):
 
 
 class SeekDBConfig(OceanBaseConfig):
-    """Configuration for embedded SeekDB vector store.
+    """Configuration for embedded seekdb vector store.
 
-    SeekDB is OceanBase's embedded mode: same engine, same SQL surface, same
+    seekdb is OceanBase's embedded mode: same engine, same SQL surface, same
     Python backend class — just no separate database server. Use this provider
     when you want zero-ops local storage; use ``oceanbase`` when you point at a
     remote OceanBase cluster.
@@ -285,12 +285,12 @@ class SeekDBConfig(OceanBaseConfig):
     The two configs share every field; ``SeekDBConfig`` only differs in:
       - provider name (``"seekdb"``)
       - embedded-mode defaults (empty ``host``, on-disk ``ob_path``)
-      - additional ``SEEKDB_*`` env var aliases so users can configure SeekDB
+      - additional ``SEEKDB_*`` env var aliases so users can configure seekdb
         without thinking in OceanBase variable names
     """
 
     _provider_name = "seekdb"
-    # Same backend class as OceanBase — SeekDB is OceanBase running embedded.
+    # Same backend class as OceanBase — seekdb is OceanBase running embedded.
     _class_path = "powermem.storage.oceanbase.oceanbase.OceanBaseVectorStore"
 
     model_config = settings_config("VECTOR_STORE_", extra="forbid", env_file=None)
@@ -314,9 +314,9 @@ class SeekDBConfig(OceanBaseConfig):
             "OCEANBASE_HOST",
         ),
         description=(
-            "Database server host. Leave empty (default) for embedded SeekDB; "
+            "Database server host. Leave empty (default) for embedded seekdb; "
             "set to a hostname only if you are pointing at a remote OceanBase "
-            "cluster from a SeekDB-named config."
+            "cluster from a seekdb-named config."
         ),
     )
 
@@ -327,7 +327,7 @@ class SeekDBConfig(OceanBaseConfig):
             "SEEKDB_PATH",
             "OCEANBASE_PATH",
         ),
-        description="On-disk directory for embedded SeekDB data files",
+        description="On-disk directory for embedded seekdb data files",
     )
 
     port: str = Field(
@@ -402,7 +402,7 @@ class SeekDBConfig(OceanBaseConfig):
 
 
 class SeekDBGraphConfig(OceanBaseGraphConfig):
-    """Configuration for embedded SeekDB graph store.
+    """Configuration for embedded seekdb graph store.
 
     Shares ``OceanBaseGraphConfig``'s backend (MemoryGraph) and field set; only
     the registered provider name differs so users can write

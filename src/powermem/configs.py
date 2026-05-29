@@ -213,7 +213,7 @@ class MemoryConfig(BaseModel):
 
     vector_store: BaseVectorStoreConfig = Field(
         description=(
-            "Configuration for the vector store. Defaults to embedded SeekDB "
+            "Configuration for the vector store. Defaults to embedded seekdb "
             "(OceanBase running locally with no separate server) so PowerMem "
             "boots without provisioning a database; override to point at a "
             "remote OceanBase cluster, SQLite, PostgreSQL, etc."

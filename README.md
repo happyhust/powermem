@@ -148,7 +148,7 @@ End-to-end runnable demos:
 
 ## Quick start (Python SDK)
 
-**Prerequisites:** Copy [.env.example](.env.example) to `.env` and set your **LLM** API key — that is the only required credential. The default database is **embedded SeekDB** (OceanBase running locally — same engine, no separate server, data on disk under `./seekdb_data`); flip `DATABASE_PROVIDER=oceanbase` to point at a remote cluster, or use `sqlite` / `postgres` if you prefer. The default embedder is a local `all-MiniLM-L6-v2` model (384 dims) that needs no API key and auto-downloads on first use. Need to tune providers or unlock advanced features? Copy [.env.example.full](.env.example.full) instead — it documents every available knob, grouped by component. After install, `pmem config init` walks you through the same setup interactively. See [Getting started](docs/guides/0001-getting_started.md).
+**Prerequisites:** Copy [.env.example](.env.example) to `.env` and set your **LLM** API key — that is the only required credential. The default database is **embedded seekdb** (OceanBase running locally — same engine, no separate server, data on disk under `./seekdb_data`); flip `DATABASE_PROVIDER=oceanbase` to point at a remote cluster, or use `sqlite` / `postgres` if you prefer. The default embedder is a local `all-MiniLM-L6-v2` model (384 dims) that needs no API key and auto-downloads on first use. Need to tune providers or unlock advanced features? Copy [.env.example.full](.env.example.full) instead — it documents every available knob, grouped by component. After install, `pmem config init` walks you through the same setup interactively. See [Getting started](docs/guides/0001-getting_started.md).
 
 ### Install
 
@@ -226,7 +226,7 @@ Docker / Compose: see [API Server](docs/api/0005-api_server.md) and [Docker & de
 | LLM | Anthropic, OpenAI, Azure OpenAI, Gemini, Qwen (+ ASR), DeepSeek, Ollama, vLLM, SiliconFlow, Z.AI, LangChain-wrapped |
 | Embedding | OpenAI, Azure OpenAI, Qwen (+ VL multimodal, sparse), Gemini, Vertex AI, AWS Bedrock, Ollama, LM Studio, HuggingFace, Together, SiliconFlow, Z.AI, OceanBase MASS, LangChain-wrapped |
 | Rerank | Jina, Qwen, Z.AI, generic |
-| Storage | OceanBase (+ graph), embedded SeekDB, PostgreSQL/pgvector, SQLite |
+| Storage | OceanBase (+ graph), embedded seekdb, PostgreSQL/pgvector, SQLite |
 
 ---
 
@@ -254,7 +254,7 @@ More topics: [Sub stores](docs/guides/0006-sub_stores.md), [guides index](docs/g
 | Version | Date | Notes |
 |---------|------|--------|
 | 1.2.0 | 2026-04 | Experience + Skill two-layer distillation and `distill_all()` (self-evolving memory; AppWorld +15 pts); OB MASS embedding; Qwen VL multimodal embedding; OceanBase Zero Mode compatibility; LOCOMO accuracy lifted to 87.79% |
-| 1.1.0 | 2026-04-02 | Embedded SeekDB for OceanBase storage without a separate database service; [IDE integrations](apps/README.md) (VS Code extension, Claude Code plugin) |
+| 1.1.0 | 2026-04-02 | Embedded seekdb for OceanBase storage without a separate database service; [IDE integrations](apps/README.md) (VS Code extension, Claude Code plugin) |
 | 1.0.0 | 2026-03-16 | CLI (`pmem`): memory ops, config, backup/restore/migrate, interactive shell, completions; Web Dashboard |
 | 0.5.0 | 2026-02-06 | Unified SDK/API config (pydantic-settings); OceanBase native hybrid search; memory query + list sorting; user-profile language customization |
 | 0.4.0 | 2026-01-20 | Sparse vectors for hybrid retrieval; profile-based query rewriting; schema upgrade & migration tools |

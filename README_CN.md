@@ -148,7 +148,7 @@ pip install powermem langchain langchain-openai
 
 ## 快速开始（Python SDK）
 
-**前置条件：** 将 [.env.example](.env.example) 复制为 `.env`，仅需配置 **LLM** 的 API key。默认数据库是 **嵌入式 SeekDB**（即 OceanBase 的本地模式，引擎与 SQL 完全一致，无需额外启动数据库进程，数据落在 `./seekdb_data`）；如需连接远端 OceanBase 集群，将 `DATABASE_PROVIDER` 切换为 `oceanbase` 即可，也可改用 `sqlite` 或 `postgres`。默认 embedder 是本地的 `all-MiniLM-L6-v2`（384 维），无需 API key，首次使用时自动下载。如需调整 provider 或开启高级特性，可改用 [.env.example.full](.env.example.full)，其中按组件分组记录了所有可调参数。安装后执行 `pmem config init` 可交互式生成同样的配置。详见 [入门指南](docs/guides/0001-getting_started.md)。
+**前置条件：** 将 [.env.example](.env.example) 复制为 `.env`，仅需配置 **LLM** 的 API key。默认数据库是 **嵌入式 seekdb**（即 OceanBase 的本地模式，引擎与 SQL 完全一致，无需额外启动数据库进程，数据落在 `./seekdb_data`）；如需连接远端 OceanBase 集群，将 `DATABASE_PROVIDER` 切换为 `oceanbase` 即可，也可改用 `sqlite` 或 `postgres`。默认 embedder 是本地的 `all-MiniLM-L6-v2`（384 维），无需 API key，首次使用时自动下载。如需调整 provider 或开启高级特性，可改用 [.env.example.full](.env.example.full)，其中按组件分组记录了所有可调参数。安装后执行 `pmem config init` 可交互式生成同样的配置。详见 [入门指南](docs/guides/0001-getting_started.md)。
 
 ### 安装
 
@@ -226,7 +226,7 @@ Docker / Compose 部署见 [API Server](docs/api/0005-api_server.md) 与 [Docker
 | LLM | Anthropic、OpenAI、Azure OpenAI、Gemini、Qwen（+ ASR 语音）、DeepSeek、Ollama、vLLM、SiliconFlow、Z.AI、LangChain 包装层 |
 | Embedding | OpenAI、Azure OpenAI、Qwen（+ VL 多模态、稀疏向量）、Gemini、Vertex AI、AWS Bedrock、Ollama、LM Studio、HuggingFace、Together、SiliconFlow、Z.AI、OceanBase MASS、LangChain 包装层 |
 | Rerank | Jina、Qwen、Z.AI、通用接口 |
-| Storage | OceanBase（含图存储）、嵌入式 SeekDB、PostgreSQL/pgvector、SQLite |
+| Storage | OceanBase（含图存储）、嵌入式 seekdb、PostgreSQL/pgvector、SQLite |
 
 ---
 
@@ -254,7 +254,7 @@ Docker / Compose 部署见 [API Server](docs/api/0005-api_server.md) 与 [Docker
 | 版本 | 日期 | 说明 |
 |------|------|------|
 | 1.2.0 | 2026-04 | Experience + Skill 双层蒸馏与 `distill_all()`（自进化记忆，AppWorld +15 pts）；OB MASS Embedding；Qwen VL 多模态 Embedding；OceanBase Zero Mode 兼容；LOCOMO 准确率提升至 87.79% |
-| 1.1.0 | 2026-04-02 | OceanBase 存储支持嵌入式 SeekDB，无需单独部署数据库服务；[IDE 集成](apps/README.md)（VS Code 扩展、Claude Code 插件） |
+| 1.1.0 | 2026-04-02 | OceanBase 存储支持嵌入式 seekdb，无需单独部署数据库服务；[IDE 集成](apps/README.md)（VS Code 扩展、Claude Code 插件） |
 | 1.0.0 | 2026-03-16 | CLI（`pmem`）：记忆操作、配置、备份/恢复/迁移、交互 Shell、补全；Web Dashboard |
 | 0.5.0 | 2026-02-06 | SDK/API 统一配置（pydantic-settings）；OceanBase 原生混合检索；记忆查询与列表排序；用户画像输出语言定制 |
 | 0.4.0 | 2026-01-20 | 稀疏向量混合检索；基于画像的查询改写；表结构升级与迁移工具 |
