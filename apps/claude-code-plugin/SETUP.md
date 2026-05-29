@@ -81,13 +81,56 @@ state and either skip, reuse, or refresh it instead of failing or duplicating wo
       powermem` already exists, remove it first, then add:
         claude mcp remove powermem 2>/dev/null; claude mcp add powermem -- uvx powermem-mcp stdio
 
-4. VERIFY with a real round-trip — do not claim success without data:
-    - SOURCE/HTTP: POST a test memory to /api/v1/memories then search it back via
-      /api/v1/memories/search and show me the JSON. Clean up the test data after.
-      Bonus: run `claude -p "..."` from an unrelated dir (NO --plugin-dir) and show
-      the server log recording a /memories/search (UserPromptSubmit hook) and a
-      /memories write (SessionEnd hook) — proving global + headless wiring.
-    - PIP/MCP: confirm `claude mcp list` shows powermem as connected.
+4. VERIFY with a real round-trip — do not claim success without data. Run the exact
+   commands below and substitute nothing except the noted placeholder. Do NOT mark
+   this step done until you have seen a non-empty search result actually come back.
+
+   SOURCE/HTTP path — run a/b/c/d/e in order:
+
+   a. Confirm the server answers (output must contain "status":"healthy"):
+        curl -s -m 5 http://localhost:8848/api/v1/system/health
+
+   b. WRITE a probe memory. CRITICAL SCHEMA: the request body is a single "content"
+      STRING field — NOT a mem0-style "messages" array. Sending {"messages":[...]}
+      returns HTTP 422 `{"detail":[{"type":"missing","loc":["body","content"]...}]}`.
+      Use a unique user_id so the probe is isolated from real data:
+        curl -s -m 60 -X POST http://localhost:8848/api/v1/memories \
+          -H 'Content-Type: application/json' \
+          -d '{"content":"PowerMem setup probe: my favorite test fruit is dragonfruit-zx9.","user_id":"powermem_setup_probe"}'
+      Expected: JSON with "success": true and a data[0].memory_id (a long numeric
+      string). The call can take 10-30s because the LLM extracts facts — KEEP the
+      -m 60 timeout and WAIT; do not background it or abort early. Save the returned
+      data[0].memory_id (a.k.a. data[0].id) — you need it for cleanup in (e).
+
+   c. SEARCH it back. CRITICAL SCHEMA: the body field is "query" (not "question" or
+      "text"), with the SAME user_id you wrote with:
+        curl -s -m 30 -X POST http://localhost:8848/api/v1/memories/search \
+          -H 'Content-Type: application/json' \
+          -d '{"query":"what is my favorite test fruit","user_id":"powermem_setup_probe","limit":5}'
+      Expected: data.total >= 1 and data.results[0].content mentions dragonfruit-zx9.
+      If data.total is 0 the round-trip FAILED — do NOT report success. Re-check the
+      server log and the embedder, retry the write in (b) once, then escalate to me.
+
+   d. SHOW me both the write JSON and the search JSON (this is the proof of success).
+
+   e. CLEAN UP the probe — delete by the id from (b), then confirm it is gone:
+        curl -s -m 10 -X DELETE http://localhost:8848/api/v1/memories/<MEMORY_ID>
+      Re-run the search from (c): data.total must now be 0.
+
+   f. BONUS (proves global + headless wiring; do it if you can). Start the server with
+      its output redirected to a log so you can grep it (if you have not already):
+        powermem-server --host 0.0.0.0 --port 8848 > /tmp/powermem-server.log 2>&1 &
+      Note the current log length, run a headless prompt from an UNRELATED dir with NO
+      --plugin-dir, then show the two new hook-driven calls it triggers:
+        ( cd /tmp && claude -p "Reply with exactly: probe ok" )
+      Then in /tmp/powermem-server.log, AFTER that run, you MUST see both:
+        POST /api/v1/memories/search   <- UserPromptSubmit hook (auto-recall)
+        POST /api/v1/memories          <- SessionEnd hook (auto-save)
+      Seeing both proves PowerMem loads automatically in every `claude`/`claude -p`.
+
+   PIP/MCP path: confirm `claude mcp list` shows powermem as "connected" (not
+   "failed"). If it shows failed, run `claude mcp get powermem` and verify the
+   configured command resolves on PATH.
 
 5. SUMMARIZE: path taken, where .env lives, where the staged marketplace lives
    (~/.claude/marketplaces/powermem — independent of this repo), the server URL,
