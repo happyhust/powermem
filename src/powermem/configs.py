@@ -17,8 +17,11 @@ import powermem.integrations.embeddings.config.sparse_providers  # noqa: F401 �
 from powermem.integrations.llm.config.base import BaseLLMConfig
 from powermem.integrations.llm.config.qwen import QwenConfig
 from powermem.storage.config.base import BaseVectorStoreConfig, BaseGraphStoreConfig
-from powermem.storage.config.sqlite import SQLiteConfig
-from powermem.storage.config.oceanbase import OceanBaseGraphConfig
+from powermem.storage.config.sqlite import SQLiteConfig  # noqa: F401 — keeps SQLite provider registered
+from powermem.storage.config.oceanbase import (
+    OceanBaseGraphConfig,  # noqa: F401 — keeps OceanBase graph provider registered
+    SeekDBConfig,
+)
 from powermem.integrations.rerank.config.base import BaseRerankConfig
 
 
@@ -209,8 +212,13 @@ class MemoryConfig(BaseModel):
     """Main memory configuration class."""
 
     vector_store: BaseVectorStoreConfig = Field(
-        description="Configuration for the vector store",
-        default_factory=SQLiteConfig,
+        description=(
+            "Configuration for the vector store. Defaults to embedded SeekDB "
+            "(OceanBase running locally with no separate server) so PowerMem "
+            "boots without provisioning a database; override to point at a "
+            "remote OceanBase cluster, SQLite, PostgreSQL, etc."
+        ),
+        default_factory=SeekDBConfig,
     )
     llm: BaseLLMConfig = Field(
         description="Configuration for the language model",

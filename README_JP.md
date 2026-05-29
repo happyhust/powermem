@@ -148,7 +148,7 @@ pip install powermem langchain langchain-openai
 
 ## クイックスタート（Python SDK）
 
-**前提:** [.env.example](.env.example) を `.env` にコピーし、**LLM** の API キーだけを設定してください。デフォルトの埋め込みモデルはローカル実行の `all-MiniLM-L6-v2`（384 次元）で、API キー不要・初回利用時に自動ダウンロードされます。デフォルト DB は SQLite。OceanBase バックエンドでは **埋め込み SeekDB** を使えるため、別途データベースを立ち上げる必要はありません。プロバイダ切り替えや高度な設定が必要な場合は [.env.example.full](.env.example.full) をコピーしてください。コンポーネントごとに全ての設定項目がまとめられています。インストール後は `pmem config init` で対話的に同じ設定を生成できます。詳しくは [はじめに](docs/guides/0001-getting_started.md) を参照してください。
+**前提:** [.env.example](.env.example) を `.env` にコピーし、**LLM** の API キーだけを設定してください。デフォルト DB は **埋め込み SeekDB**（OceanBase をローカルで起動したもので、エンジン・SQL は完全に同一、別プロセスのデータベース不要、データは `./seekdb_data` に保存）。リモートの OceanBase クラスタに接続したい場合は `DATABASE_PROVIDER=oceanbase` に切り替えるだけで、`sqlite` や `postgres` も選択可能です。デフォルトの埋め込みモデルはローカル実行の `all-MiniLM-L6-v2`（384 次元）で、API キー不要・初回利用時に自動ダウンロードされます。プロバイダ切り替えや高度な設定が必要な場合は [.env.example.full](.env.example.full) をコピーしてください。コンポーネントごとに全ての設定項目がまとめられています。インストール後は `pmem config init` で対話的に同じ設定を生成できます。詳しくは [はじめに](docs/guides/0001-getting_started.md) を参照してください。
 
 ### インストール
 

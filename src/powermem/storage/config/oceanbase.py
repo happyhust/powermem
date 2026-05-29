@@ -264,11 +264,152 @@ class OceanBaseConfig(BaseVectorStoreConfig):
 
 class OceanBaseGraphConfig(BaseGraphStoreConfig):
     """Configuration for OceanBase graph store."""
-    
+
     _provider_name = "oceanbase"
     _class_path = "powermem.storage.oceanbase.oceanbase_graph.MemoryGraph"
-    
+
     model_config = settings_config("GRAPH_STORE_", extra="forbid", env_file=None)
-    
+
     # All fields (connection, vector, max_hops) are inherited from BaseGraphStoreConfig
     # No additional fields needed for OceanBase GraphStore at this time
+
+
+class SeekDBConfig(OceanBaseConfig):
+    """Configuration for embedded SeekDB vector store.
+
+    SeekDB is OceanBase's embedded mode: same engine, same SQL surface, same
+    Python backend class — just no separate database server. Use this provider
+    when you want zero-ops local storage; use ``oceanbase`` when you point at a
+    remote OceanBase cluster.
+
+    The two configs share every field; ``SeekDBConfig`` only differs in:
+      - provider name (``"seekdb"``)
+      - embedded-mode defaults (empty ``host``, on-disk ``ob_path``)
+      - additional ``SEEKDB_*`` env var aliases so users can configure SeekDB
+        without thinking in OceanBase variable names
+    """
+
+    _provider_name = "seekdb"
+    # Same backend class as OceanBase — SeekDB is OceanBase running embedded.
+    _class_path = "powermem.storage.oceanbase.oceanbase.OceanBaseVectorStore"
+
+    model_config = settings_config("VECTOR_STORE_", extra="forbid", env_file=None)
+
+    collection_name: str = Field(
+        default="power_mem",
+        validation_alias=AliasChoices(
+            "collection_name",
+            "VECTOR_STORE_COLLECTION_NAME",
+            "SEEKDB_COLLECTION",
+            "OCEANBASE_COLLECTION",
+        ),
+        description="Default name for the collection",
+    )
+
+    host: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "host",
+            "SEEKDB_HOST",
+            "OCEANBASE_HOST",
+        ),
+        description=(
+            "Database server host. Leave empty (default) for embedded SeekDB; "
+            "set to a hostname only if you are pointing at a remote OceanBase "
+            "cluster from a SeekDB-named config."
+        ),
+    )
+
+    ob_path: str = Field(
+        default="./seekdb_data",
+        validation_alias=AliasChoices(
+            "ob_path",
+            "SEEKDB_PATH",
+            "OCEANBASE_PATH",
+        ),
+        description="On-disk directory for embedded SeekDB data files",
+    )
+
+    port: str = Field(
+        default="2881",
+        validation_alias=AliasChoices(
+            "port",
+            "SEEKDB_PORT",
+            "OCEANBASE_PORT",
+        ),
+        description="Database server port (ignored in embedded mode)",
+    )
+
+    user: str = Field(
+        default="root@test",
+        validation_alias=AliasChoices(
+            "SEEKDB_USER",
+            "OCEANBASE_USER",
+            "user",  # avoid using system USER environment variable first
+        ),
+        description="Database username (ignored in embedded mode)",
+    )
+
+    password: str = Field(
+        default="",
+        validation_alias=AliasChoices(
+            "password",
+            "SEEKDB_PASSWORD",
+            "OCEANBASE_PASSWORD",
+        ),
+        description="Database password (ignored in embedded mode)",
+    )
+
+    db_name: str = Field(
+        default="test",
+        validation_alias=AliasChoices(
+            "db_name",
+            "SEEKDB_DATABASE",
+            "OCEANBASE_DATABASE",
+        ),
+        description="Database name",
+    )
+
+    index_type: str = Field(
+        default="HNSW",
+        validation_alias=AliasChoices(
+            "index_type",
+            "SEEKDB_INDEX_TYPE",
+            "OCEANBASE_INDEX_TYPE",
+        ),
+        description="Type of vector index (HNSW, IVF, FLAT, etc.)",
+    )
+
+    vidx_metric_type: str = Field(
+        default="l2",
+        validation_alias=AliasChoices(
+            "vidx_metric_type",
+            "SEEKDB_VECTOR_METRIC_TYPE",
+            "OCEANBASE_VECTOR_METRIC_TYPE",
+        ),
+        description="Distance metric (l2, inner_product, cosine)",
+    )
+
+    embedding_model_dims: Optional[int] = Field(
+        default=None,
+        validation_alias=AliasChoices(
+            "embedding_model_dims",
+            "SEEKDB_EMBEDDING_MODEL_DIMS",
+            "OCEANBASE_EMBEDDING_MODEL_DIMS",
+        ),
+        description="Dimension of vectors",
+    )
+
+
+class SeekDBGraphConfig(OceanBaseGraphConfig):
+    """Configuration for embedded SeekDB graph store.
+
+    Shares ``OceanBaseGraphConfig``'s backend (MemoryGraph) and field set; only
+    the registered provider name differs so users can write
+    ``GRAPH_STORE_PROVIDER=seekdb`` symmetrically with the vector store side.
+    """
+
+    _provider_name = "seekdb"
+    _class_path = "powermem.storage.oceanbase.oceanbase_graph.MemoryGraph"
+
+    model_config = settings_config("GRAPH_STORE_", extra="forbid", env_file=None)
