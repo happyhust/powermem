@@ -67,7 +67,7 @@ mcp = [
     "uvicorn>=0.27.1",
 ]
 seekdb = [
-    "pyseekdb>=0.1.0",
+    "pyseekdb>=1.3.0",
 ]
 extras = [
     "sentence-transformers>=5.0.0",
