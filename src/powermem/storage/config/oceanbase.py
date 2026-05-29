@@ -473,31 +473,18 @@ class SeekDBConfig(OceanBaseConfig):
     )
 
     # --- Connection pool ----------------------------------------------------
-    # Only meaningful when seekdb is pointed at a remote host. In embedded
-    # mode the backend uses a NullPool (single-threaded engine) so these are
-    # effectively no-ops.
+    # Embedded seekdb uses a NullPool (single-threaded engine), so the parent
+    # OceanBaseConfig's pool_recycle / pool_pre_ping fields are no-ops here.
+    # Override them with no env aliases so the OCEANBASE_POOL_* keys inherited
+    # from the parent cannot bind to a seekdb deployment.
     pool_recycle: int = Field(
         default=3600,
-        validation_alias=AliasChoices(
-            "pool_recycle",
-            "SEEKDB_POOL_RECYCLE",
-        ),
-        description=(
-            "SQLAlchemy pool_recycle in seconds (prevents stale connections). "
-            "No-op in embedded mode."
-        ),
+        description="Inherited field; no-op in embedded seekdb mode (NullPool).",
     )
 
     pool_pre_ping: bool = Field(
         default=True,
-        validation_alias=AliasChoices(
-            "pool_pre_ping",
-            "SEEKDB_POOL_PRE_PING",
-        ),
-        description=(
-            "SQLAlchemy pool_pre_ping (tests connections before use). "
-            "No-op in embedded mode."
-        ),
+        description="Inherited field; no-op in embedded seekdb mode (NullPool).",
     )
 
     # --- Hybrid / sparse retrieval toggles ----------------------------------
@@ -526,6 +513,21 @@ class SeekDBConfig(OceanBaseConfig):
         ),
     )
 
+    @model_validator(mode="after")
+    def _reject_seekdb_pool_envs(self):
+        # SQLAlchemy pool tuning is a no-op in embedded seekdb (NullPool).
+        # Fail loudly if a user sets SEEKDB_POOL_* env vars instead of
+        # silently ignoring them — keeps misconfiguration visible.
+        for var in ("SEEKDB_POOL_RECYCLE", "SEEKDB_POOL_PRE_PING"):
+            if os.environ.get(var):
+                raise ValueError(
+                    f"{var} is not accepted under DATABASE_PROVIDER=seekdb. "
+                    "Connection-pool tuning has no effect in embedded mode "
+                    "(the backend uses NullPool). Move the setting to "
+                    "DATABASE_PROVIDER=oceanbase with OCEANBASE_POOL_* "
+                    "instead, or unset the variable."
+                )
+        return self
 
 
 class SeekDBGraphConfig(OceanBaseGraphConfig):

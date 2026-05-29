@@ -93,9 +93,9 @@ def test_seekdb_config_reads_SEEKDB_schema_shape_aliases(monkeypatch):
     assert cfg.vidx_name == "custom_vidx"
 
 
-def test_seekdb_config_reads_SEEKDB_pool_and_hybrid_aliases(monkeypatch):
-    monkeypatch.setenv("SEEKDB_POOL_RECYCLE", "1800")
-    monkeypatch.setenv("SEEKDB_POOL_PRE_PING", "false")
+def test_seekdb_config_reads_SEEKDB_sparse_and_hybrid_aliases(monkeypatch):
+    monkeypatch.delenv("SEEKDB_POOL_RECYCLE", raising=False)
+    monkeypatch.delenv("SEEKDB_POOL_PRE_PING", raising=False)
     monkeypatch.setenv("SEEKDB_INCLUDE_SPARSE", "true")
     # SEEKDB_ENABLE_NATIVE_HYBRID defaults to True; explicitly disable to
     # prove the alias does bind.
@@ -104,10 +104,27 @@ def test_seekdb_config_reads_SEEKDB_pool_and_hybrid_aliases(monkeypatch):
     from powermem.storage.config.oceanbase import SeekDBConfig
 
     cfg = SeekDBConfig()
-    assert cfg.pool_recycle == 1800
-    assert cfg.pool_pre_ping is False
     assert cfg.include_sparse is True
     assert cfg.enable_native_hybrid is False
+
+
+def test_seekdb_rejects_SEEKDB_POOL_RECYCLE_env(monkeypatch):
+    """Pool tuning is a no-op in embedded mode; setting it should fail loudly."""
+    monkeypatch.setenv("SEEKDB_POOL_RECYCLE", "1800")
+
+    from powermem.storage.config.oceanbase import SeekDBConfig
+
+    with pytest.raises(ValueError, match="SEEKDB_POOL_RECYCLE"):
+        SeekDBConfig()
+
+
+def test_seekdb_rejects_SEEKDB_POOL_PRE_PING_env(monkeypatch):
+    monkeypatch.setenv("SEEKDB_POOL_PRE_PING", "false")
+
+    from powermem.storage.config.oceanbase import SeekDBConfig
+
+    with pytest.raises(ValueError, match="SEEKDB_POOL_PRE_PING"):
+        SeekDBConfig()
 
 
 def test_seekdb_native_hybrid_defaults_to_true(monkeypatch):
