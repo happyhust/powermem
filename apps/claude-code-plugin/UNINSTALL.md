@@ -76,15 +76,16 @@ confirmation — those steps are gated below.
       (You may also restore the committed default if it drifted:
         git checkout -- apps/claude-code-plugin/.mcp.json 2>/dev/null || true)
     - Stored memories (DESTRUCTIVE — this erases all my saved memories): the embedded
-      seekdb data lives in the data dir (e.g. ./seekdb_data or the path in my .env).
+      seekdb data lives in `./seekdb_data/` (or the path in my .env).
+      For SQLite storage mode, data lives in `./sqlite_data/`.
       Only delete it if I explicitly say so.
     - Secrets: do NOT touch my .env unless I explicitly ask. If I do, redact the key
       in any output.
 
 6. SUMMARIZE: which path applied, what was removed vs. already absent, confirmation
    that the server is stopped and the plugin/MCP server is no longer registered, and
-   list anything left in place by design (e.g. .env, seekdb_data, the powermem package)
-   so I know what — if anything — to clean up manually.
+   list anything left in place by design (e.g. .env, seekdb_data/, sqlite_data/,
+   the powermem package) so I know what — if anything — to clean up manually.
 
 For the install procedure, see SETUP.md. For the full manual reference, see
 ../../docs/integrations/claude_code.md

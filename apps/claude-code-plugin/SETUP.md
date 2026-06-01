@@ -83,7 +83,7 @@ for the user's confirmation before writing. Never silently patch `.env`.**
       (Enablement is preserved across uninstall+reinstall.)
     - Start the API server only if it is not already healthy (idempotent):
         curl -s http://localhost:8848/api/v1/system/health   # if not healthy:
-        powermem-server --host 0.0.0.0 --port 8848           # run in background
+        powermem-server --host 0.0.0.0 --port 8848 &         # run in background
     - Confirm the plugin is enabled:  claude plugin list  (look for
       memory-powermem@powermem). Do NOT print a --plugin-dir command — it is global
       now; every `claude` and `claude -p` loads it automatically.
@@ -132,13 +132,12 @@ for the user's confirmation before writing. Never silently patch `.env`.**
         curl -s -m 10 -X DELETE http://localhost:8848/api/v1/memories/<MEMORY_ID>
       Re-run the search from (c): data.total must now be 0.
 
-   f. BONUS (proves global + headless wiring; do it if you can). Start the server with
-      its output redirected to a log so you can grep it (if you have not already):
-        powermem-server --host 0.0.0.0 --port 8848 > /tmp/powermem-server.log 2>&1 &
-      Note the current log length, run a headless prompt from an UNRELATED dir with NO
-      --plugin-dir, then show the two new hook-driven calls it triggers:
+   f. BONUS (proves global + headless wiring; do it if you can). Run a headless
+      prompt from an UNRELATED dir with NO --plugin-dir, then check the logs for
+      the two hook-driven calls it triggers:
         ( cd /tmp && claude -p "Reply with exactly: probe ok" )
-      Then in /tmp/powermem-server.log, AFTER that run, you MUST see both:
+      Then in `server.log` (powermem-server) and `seekdb_data/log/seekdb.log`
+      (seekdb), AFTER that run, you MUST see both:
         POST /api/v1/memories/search   <- UserPromptSubmit hook (auto-recall)
         POST /api/v1/memories          <- SessionEnd hook (auto-save)
       Seeing both proves PowerMem loads automatically in every `claude`/`claude -p`.
@@ -179,6 +178,10 @@ For the full manual reference, see ../../docs/integrations/claude_code.md
 Every real-world setup encounters issues. This guide documents specific error scenarios
 and their resolutions discovered during actual setup attempts:
 
+### Log File Locations
+- **powermem-server**: `server.log` (RotatingFileHandler, 10MB max, 5 backups)
+- **seekdb**: `seekdb_data/log/seekdb.log` (native C++ engine log)
+
 ### Error Resolution Checklist
 
 #### [E001] PEP 668 System Protection
@@ -205,7 +208,7 @@ pip install loguru
 ```bash
 pkill -f powermem-server
 rm -rf seekdb_data
-powermem-server --host 0.0.0.0 --port 8848
+powermem-server --host 0.0.0.0 --port 8848 &
 ```
 
 #### [E004] Missing Go for Hooks
@@ -220,7 +223,15 @@ make build-claude-hook
 **Problem**: 503 errors on API calls despite server health
 **Fix**: Use SQLite alternative
 ```bash
-STORAGE_TYPE=sqlite SQLITE_DB_PATH=/tmp/powermem.db powermem-server --host 0.0.0.0 --port 8848
+STORAGE_TYPE=sqlite SQLITE_DB_PATH=sqlite_data/powermem.db powermem-server --host 0.0.0.0 --port 8848 &
+```
+
+#### [E006] Model Download Timeout
+**Problem**: Server hangs for 30-60s on startup, "timed out thrown while requesting HEAD"
+**Fix**: The embedder now auto-detects cache and falls back with a 30s timeout.
+If the model is not cached, download it manually:
+```bash
+python -c "from modelscope import snapshot_download; snapshot_download('AI-ModelScope/all-MiniLM-L6-v2')"
 ```
 
 ## PRE-CHECK & PREREQUISITES
@@ -255,8 +266,8 @@ rsync -a --delete "$(pwd)/apps/claude-code-plugin/" "$DEST/"
 claude plugin marketplace add "$DEST"
 claude plugin install memory-powermem@powermem --scope user
 
-# Start server with error resilience
-powermem-server --host 0.0.0.0 --port 8848 > /tmp/powermem-server.log 2>&1 &
+# Start server (logs go to server.log automatically)
+powermem-server --host 0.0.0.0 --port 8848 &
 ```
 
 ### Method B: PIP Path (Recommended for Stability)
@@ -276,7 +287,10 @@ claude mcp add powermem -- uvx powermem-mcp stdio
 lsof -i :8848    # Check if port is in use
 pkill -f powermem-server  # Kill any running server
 rm -rf seekdb_data  # Reset SeekDB if corrupted
-tail -f /tmp/powermem-server.log  # Monitor logs
+
+# Check logs
+tail -f server.log              # PowerMem server errors
+tail -f seekdb_data/log/seekdb.log  # SeekDB engine errors
 ```
 
 ## FINAL VALIDATION STEPS
