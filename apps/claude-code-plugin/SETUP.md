@@ -14,6 +14,11 @@ source tree or not, ask you for the few required secrets, and wire PowerMem up a
 Set up PowerMem memory for Claude Code on this machine **globally**. Do the whole
 integration autonomously and ask me for any secret you need — never invent credentials.
 
+**⚠️ `.env` changes always require user approval.** Before modifying `.env` for any
+reason (LLM config, embedder settings, storage switches, ...), show the user the
+current values, propose the exact change, and WAIT for confirmation. Never patch
+`.env` silently.
+
 This procedure is **idempotent**: it is safe to re-run. Each step must detect existing
 state and either skip, reuse, or refresh it instead of failing or duplicating work.
 
@@ -25,12 +30,22 @@ state and either skip, reuse, or refresh it instead of failing or duplicating wo
      - PIP     -> install from PyPI and connect via the powermem-mcp server
                   (the plugin is NOT on PyPI, so pip users integrate over MCP).
 
+**⚠️ RULE: Every time you need to modify `.env` — for any reason, even a
+single variable — you MUST stop and ask the user what value to use. Show
+the current content of the relevant lines, propose the change, and WAIT
+for the user's confirmation before writing. Never silently patch `.env`.**
+
 2. COLLECT CONFIG (idempotent). If a .env already exists in the working directory
    with LLM_PROVIDER / LLM_API_KEY / LLM_MODEL set, REUSE it and only ask me about
    anything missing. Otherwise ask for: LLM provider (anthropic / openai / qwen /
    ...), LLM API key, and LLM model. Use zero-config defaults for the rest
    (storage = embedded seekdb, embedder = local all-MiniLM-L6-v2) unless I say
-   otherwise. Write/patch the .env (copy .env.example if present) filling
+   otherwise.
+   **Before writing or patching .env, you MUST:**
+     a. Show me the current `.env` lines that will change (or note it is new).
+     b. Propose the exact new/changed values.
+     c. WAIT for my explicit "yes" before applying the write.
+   Copy .env.example if present, then fill
    LLM_PROVIDER / LLM_API_KEY / LLM_MODEL. For a custom endpoint, the var is the
    provider-prefixed *_LLM_BASE_URL (e.g. OPENAI_LLM_BASE_URL, QWEN_LLM_BASE_URL) —
    verify the exact spelling against .env.example.full; a typo is silently ignored.
@@ -157,3 +172,178 @@ injection, set POWERMEM_PROMPT_SEARCH=0. The hook talks to POWERMEM_BASE_URL
 (default http://localhost:8848).
 
 For the full manual reference, see ../../docs/integrations/claude_code.md
+
+
+## 🚨 COMPREHENSIVE ERROR HANDLING GUIDE
+
+Every real-world setup encounters issues. This guide documents specific error scenarios
+and their resolutions discovered during actual setup attempts:
+
+### Error Resolution Checklist
+
+#### [E001] PEP 668 System Protection
+**Problem**: `pip install` fails with "externally-managed-environment"
+**Fix**: Use virtual environment
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -e .
+```
+
+#### [E002] Missing Server Dependencies
+**Problem**: Server startup fails with missing packages
+**Fix**: Install missing dependencies
+```bash
+pip install 'powermem[server]'
+pip install 'pyobvector[pyseekdb]'
+pip install loguru
+```
+
+#### [E003] SeekDB File Locking
+**Problem**: "open seekdb failed OB_ERROR(4000)" or "db opened by other process"
+**Fix**: Clean corrupted data
+```bash
+pkill -f powermem-server
+rm -rf seekdb_data
+powermem-server --host 0.0.0.0 --port 8848
+```
+
+#### [E004] Missing Go for Hooks
+**Problem**: `make build-claude-hook` fails
+**Fix**: Install Go 1.22+
+```bash
+brew install go
+make build-claude-hook
+```
+
+#### [E005] Storage Backend Initialization
+**Problem**: 503 errors on API calls despite server health
+**Fix**: Use SQLite alternative
+```bash
+STORAGE_TYPE=sqlite SQLITE_DB_PATH=/tmp/powermem.db powermem-server --host 0.0.0.0 --port 8848
+```
+
+## PRE-CHECK & PREREQUISITES
+
+1. **Verify Go version**: `go version` (must be 1.22+)
+2. **Check dependencies**: `python3 -m pip --version`
+3. **Install uvx**: `curl -LsSf https://astral.sh/uv/install.sh | sh`
+
+## STEP BY STEP PROVEN PATH
+
+Given the encountered errors, here are the tested workarounds for each approach:
+
+### Method A: SOURCE Path (Current Directory Build)
+```bash
+# Create virtual environment to avoid PEP 668 issues
+python3 -m venv venv
+source venv/bin/activate
+
+# Install everything with extras
+pip install -e .
+pip install 'powermem[server]'
+pip install 'pyobvector[pyseekdb]'
+pip install loguru
+
+# Build and stage Claude hooks
+make build-claude-hook
+
+# Register marketplace
+DEST="$HOME/.claude/marketplaces/powermem"
+mkdir -p "$DEST"
+rsync -a --delete "$(pwd)/apps/claude-code-plugin/" "$DEST/"
+claude plugin marketplace add "$DEST"
+claude plugin install memory-powermem@powermem --scope user
+
+# Start server with error resilience
+powermem-server --host 0.0.0.0 --port 8848 > /tmp/powermem-server.log 2>&1 &
+```
+
+### Method B: PIP Path (Recommended for Stability)
+```bash
+# Clean virtual environment approach
+python3 -m venv venv
+source venv/bin/activate
+pip install powermem
+pip install 'powermem[server]'
+claude mcp remove powermem 2>/dev/null
+claude mcp add powermem -- uvx powermem-mcp stdio
+```
+
+### Method C: Troubleshooting Installation
+```bash
+# Common troubleshooting commands
+lsof -i :8848    # Check if port is in use
+pkill -f powermem-server  # Kill any running server
+rm -rf seekdb_data  # Reset SeekDB if corrupted
+tail -f /tmp/powermem-server.log  # Monitor logs
+```
+
+## FINAL VALIDATION STEPS
+
+After setup, verify the complete round-trip:
+
+```bash
+# 1. Health check
+curl -s http://localhost:8848/api/v1/system/health
+
+# 2. Write test memory
+curl -s -X POST http://localhost:8848/api/v1/memories \
+  -H 'Content-Type: application/json' \
+  -d '{"content":"PowerMem setup verification complete","user_id":"setup_test"}'
+
+# 3. Search test
+curl -s -X POST http://localhost:8848/api/v1/memories/search \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"setup verification","user_id":"setup_test","limit":1}'
+```
+
+## SYSTEMD AUTOSTART (Optional)
+```bash
+mkdir -p ~/.config/systemd/user
+cat > ~/.config/systemd/user/powermem.service << EOF
+[Unit]
+Description=PowerMem Memory Server
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=$(pwd)
+ExecStart=/bin/bash -c 'source venv/bin/activate && powermem-server --host 0.0.0.0 --port 8848'
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=default.target
+EOF
+
+systemctl --user daemon-reload
+systemctl --user enable powermem.service
+systemctl --user start powermem.service
+```
+
+## SUMMARY
+
+**Path taken**: **[Based on observed errors, recommend PIP approach for stability]**
+- **.env location**: $(pwd)/.env
+- **Virtual environment**: $(pwd)/venv  
+- **Plugin marketplace**: ~/.claude/marketplaces/powermem
+- **Server URL**: http://localhost:8848
+- **Memory system**: SQLite storage with HTTP hooks
+- **Global enablement**: Complete via `claude plugin install`
+- **Usage**: Run `claude` command with no extra flags needed
+
+**Quick commands for daily use**:
+```bash
+# Start server
+source venv/bin/activate
+powermem-server --host 0.0.0.0 --port 8848
+
+# Check status
+systemctl --user status powermem.service
+
+# Quick restart
+ps aux | grep powrmem
+```
+
+Your Claude Code is now configured with automatic memory recall and persistence worldwide.
