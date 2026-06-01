@@ -20,7 +20,6 @@ to switch to a production-grade provider (OpenAI, Qwen, SiliconFlow, etc.).
 from __future__ import annotations
 
 import logging
-import os
 import threading
 from typing import List, Literal, Optional
 
@@ -50,6 +49,7 @@ def _is_model_cached(model_name: str) -> bool:
     """Check if a HuggingFace model is already in the local cache."""
     try:
         from huggingface_hub import try_to_load_from_cache
+
         result = try_to_load_from_cache(model_name, "config.json")
         return result is not None  # None = not cached
     except Exception:
@@ -66,11 +66,24 @@ def _load_sentence_transformer_with_fallback(model_name: str, repo_id: str):
        timeout.  If the download succeeds, use it.  If it times out or fails,
        raise a clear error with manual download instructions.
 
+    ``sentence_transformers`` is an optional dependency (the ``extras`` group).
+    When it is not installed we skip this pre-warm step entirely and let
+    pyseekdb's ``DefaultEmbeddingFunction`` load the model itself via
+    ``onnxruntime`` — the embedder still works, it just misses the cache-first
+    optimization that avoids a possible huggingface.co hang on slow networks.
+
     Args:
         model_name: short name passed to SentenceTransformer (e.g. "all-MiniLM-L6-v2")
         repo_id: full HuggingFace repo ID (e.g. "sentence-transformers/all-MiniLM-L6-v2")
     """
-    from sentence_transformers import SentenceTransformer
+    try:
+        from sentence_transformers import SentenceTransformer
+    except ImportError:
+        logger.debug(
+            "sentence_transformers not installed; skipping model pre-warm "
+            "(install the 'extras' group to enable the cache-first optimization)"
+        )
+        return None
 
     if _is_model_cached(repo_id):
         model = SentenceTransformer(model_name, local_files_only=True)
@@ -81,7 +94,8 @@ def _load_sentence_transformer_with_fallback(model_name: str, repo_id: str):
     # Cache miss: attempt download with timeout.
     logger.debug(
         "Model {} not in cache, attempting download (timeout {}s)…",
-        model_name, _MODEL_DOWNLOAD_TIMEOUT_S,
+        model_name,
+        _MODEL_DOWNLOAD_TIMEOUT_S,
     )
 
     result: list = [None]
@@ -107,7 +121,7 @@ def _load_sentence_transformer_with_fallback(model_name: str, repo_id: str):
             f"Failed to download embedding model '{model_name}': "
             f"{error[0]}. "
             f"Download it manually: "
-            f"python -c \"from modelscope import snapshot_download; "
+            f'python -c "from modelscope import snapshot_download; '
             f"snapshot_download('AI-ModelScope/all-MiniLM-L6-v2')\""
         ) from error[0]
 
@@ -116,7 +130,7 @@ def _load_sentence_transformer_with_fallback(model_name: str, repo_id: str):
         f"{_MODEL_DOWNLOAD_TIMEOUT_S}s. The model is not cached and the "
         f"network is unreachable. "
         f"Download it manually: "
-        f"python -c \"from modelscope import snapshot_download; "
+        f'python -c "from modelscope import snapshot_download; '
         f"snapshot_download('AI-ModelScope/all-MiniLM-L6-v2')\""
     )
 
@@ -133,6 +147,7 @@ def _patch_sentence_transformer_cache(model_name: str, model):
         from pyseekdb.utils.embedding_functions.sentence_transformer_embedding_function import (
             SentenceTransformerEmbeddingFunction,
         )
+
         SentenceTransformerEmbeddingFunction.models[model_name] = model
         logger.debug("Patched pyseekdb SentenceTransformer cache for {}", model_name)
     except ImportError:
@@ -159,7 +174,8 @@ class PyseekdbDefaultEmbedding(EmbeddingBase):
         # on a blocked network).  HF_HUB_OFFLINE=1 is set at module level
         # so pyseekdb's internal call also hits the cache.
         _load_sentence_transformer_with_fallback(
-            DEFAULT_MODEL_NAME, DEFAULT_MODEL_REPO_ID,
+            DEFAULT_MODEL_NAME,
+            DEFAULT_MODEL_REPO_ID,
         )
 
         self._fn = DefaultEmbeddingFunction()
