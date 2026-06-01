@@ -1,8 +1,8 @@
 # Claude Code
 
-Give [Claude Code](https://code.claude.com) persistent, self-evolving memory through the first-party plugin (`memory-powermem`, under [`apps/claude-code-plugin/`](../../apps/claude-code-plugin/)).
+Give [Claude Code](https://code.claude.com) persistent, self-evolving memory through the first-party plugin (`memory-powermem`, under [`apps/claude-code-plugin/`](https://github.com/oceanbase/powermem/tree/main/apps/claude-code-plugin/)).
 
-This page is the single source of truth for the Claude Code integration — the plugin's own [`README.md`](../../apps/claude-code-plugin/README.md) links here.
+This page is the single source of truth for the Claude Code integration — the plugin's own [`README.md`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/README.md) links here.
 
 ## Fastest path — let Claude Code set itself up
 
@@ -12,7 +12,7 @@ Open Claude Code in your terminal and paste this one line:
 Read and follow apps/claude-code-plugin/SETUP.md to set up PowerMem memory for Claude Code.
 ```
 
-Claude Code reads [`apps/claude-code-plugin/SETUP.md`](../../apps/claude-code-plugin/SETUP.md) — the canonical automated-setup prompt — which detects whether you are in the PowerMem **source tree** (developer) or anywhere else (**pip user**), asks you for the few required secrets, and wires everything up end-to-end.
+Claude Code reads [`apps/claude-code-plugin/SETUP.md`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/SETUP.md) — the canonical automated-setup prompt — which detects whether you are in the PowerMem **source tree** (developer) or anywhere else (**pip user**), asks you for the few required secrets, and wires everything up end-to-end.
 
 Prefer to wire it by hand? The full plugin reference below covers every option.
 
@@ -22,9 +22,9 @@ Prefer to wire it by hand? The full plugin reference below covers every option.
 
 - **Two connection modes** (aligned with the PowerMem VS Code extension). **HTTP mode is the default** (standard): REST-only via hooks, no PowerMem MCP tools in chat. **MCP mode** is optional when you want `search_memories` / `add_memory` in the conversation. See [Configuration](#configuration).
 - **HTTP mode (default)**: Root `.mcp.json` ships with empty `mcpServers`. Hooks use **`POST /api/v1/memories`** (`POWERMEM_BASE_URL`, default `http://localhost:8848`).
-- **MCP mode (optional)**: Copy [`config/mcp-mode.mcp.json`](../../apps/claude-code-plugin/config/mcp-mode.mcp.json) to `.mcp.json` (or run `apply-connection-mode.sh mcp`). Claude gets PowerMem tools over **HTTP** `…/mcp` or **stdio**.
+- **MCP mode (optional)**: Copy [`config/mcp-mode.mcp.json`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/config/mcp-mode.mcp.json) to `.mcp.json` (or run `apply-connection-mode.sh mcp`). Claude gets PowerMem tools over **HTTP** `…/mcp` or **stdio**.
 - **Skills**: `/memory-powermem:remember` and `/memory-powermem:recall` — effective in **MCP mode**; in default HTTP mode they cannot drive tools.
-- **Seamless REST capture**: Hooks run in **both** modes. Optional **file poller** — see [watcher/README.md](../../apps/claude-code-plugin/watcher/README.md).
+- **Seamless REST capture**: Hooks run in **both** modes. Optional **file poller** — see [watcher/README.md](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/watcher/README.md).
 - **Auto-retrieval (no MCP required, on by default)**: The `UserPromptSubmit` hook calls **`POST /api/v1/memories/search`** with the user’s prompt and injects hits via [`additionalContext`](https://code.claude.com/docs/en/hooks#userpromptsubmit). Set **`POWERMEM_PROMPT_SEARCH=0`** (or `false` / `no` / `off`) to disable — saves a search round-trip per turn. Works in **HTTP and MCP** modes.
 
 ## Runtime requirements (end users)
@@ -34,18 +34,18 @@ Prefer to wire it by hand? The full plugin reference below covers every option.
 | Claude Code | No | |
 | MCP tools | No | **Off by default** (HTTP mode). Run `apply-connection-mode.sh mcp` to enable. |
 | **Hooks** (transcript / compact → HTTP API) | **No** | Native binaries under `hooks/bin/` + `run-hook.sh` (macOS/Linux) or PowerShell on Windows. **`POWERMEM_BASE_URL` defaults to `http://localhost:8848`.** |
-| Optional **file poller** | No | Same binary: `sh hooks/run-hook.sh poll` — see [watcher/README.md](../../apps/claude-code-plugin/watcher/README.md). |
+| Optional **file poller** | No | Same binary: `sh hooks/run-hook.sh poll` — see [watcher/README.md](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/watcher/README.md). |
 
 **macOS / Linux:** default `hooks/hooks.json` runs `sh …/run-hook.sh`. POSIX `sh` is always present.
 
-**Windows (native, no Git Bash):** if `sh` is missing, merge the commands from [`hooks/hooks.windows.example.json`](../../apps/claude-code-plugin/hooks/hooks.windows.example.json) into your Claude `settings.json` so hooks call `powershell.exe -File …/run-hook.ps1`. The zip includes `hooks/bin/powermem-hook-windows-amd64.exe` (add `windows/arm64` to the build script if you need it).
+**Windows (native, no Git Bash):** if `sh` is missing, merge the commands from [`hooks/hooks.windows.example.json`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/hooks/hooks.windows.example.json) into your Claude `settings.json` so hooks call `powershell.exe -File …/run-hook.ps1`. The zip includes `hooks/bin/powermem-hook-windows-amd64.exe` (add `windows/arm64` to the build script if you need it).
 
 **Rebuilding binaries** (developers / CI): Go **1.22+**, then `bash scripts/build-hook-binaries.sh` or `make build-claude-hook` from the repo root. `make package-claude-plugin` builds them automatically before zipping.
 
 ## Prerequisites
 
 1. **PowerMem HTTP API** reachable from the machine running Claude (e.g. `powermem-server --port 8848`). Default hooks use **`http://localhost:8848`** — override with `POWERMEM_BASE_URL` for a remote server.
-2. **MCP mode only:** additionally expose MCP (same host, usually `/mcp`) or stdio `powermem-mcp`, and switch `.mcp.json` via [`config/mcp-mode.mcp.json`](../../apps/claude-code-plugin/config/mcp-mode.mcp.json).
+2. **MCP mode only:** additionally expose MCP (same host, usually `/mcp`) or stdio `powermem-mcp`, and switch `.mcp.json` via [`config/mcp-mode.mcp.json`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/config/mcp-mode.mcp.json).
 3. **Claude Code** (VS Code extension or CLI) with plugin support.
 
 ## Manual Installation
@@ -157,7 +157,7 @@ How you remove the plugin depends on how you enabled it:
 | **Zip / copied folder** | Delete the unzipped directory. Stop using `--plugin-dir` pointing at it. |
 | **Git clone / repo path** | Stop using `--plugin-dir` for that path; remove the clone if you no longer need it. |
 | **Marketplace / built-in plugin UI** *(not yet available)* | Reserved for when the plugin is published to a Claude Code marketplace: you would disable or uninstall **memory-powermem** in Claude Code’s plugin settings ([Claude Code plugins](https://code.claude.com/docs/en/plugins)). Today the plugin is loaded via `--plugin-dir`, so use the rows above. |
-| **You merged [`hooks/hooks.windows.example.json`](../../apps/claude-code-plugin/hooks/hooks.windows.example.json) into `settings.json`** | Edit `~/.claude/settings.json` or `.claude/settings.json` in the project and remove the `UserPromptSubmit` / `SessionEnd` / `PostCompact` hook entries that call `run-hook.ps1` (or restore a backup). Otherwise hooks keep running even after the plugin folder is deleted. |
+| **You merged [`hooks/hooks.windows.example.json`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/hooks/hooks.windows.example.json) into `settings.json`** | Edit `~/.claude/settings.json` or `.claude/settings.json` in the project and remove the `UserPromptSubmit` / `SessionEnd` / `PostCompact` hook entries that call `run-hook.ps1` (or restore a backup). Otherwise hooks keep running even after the plugin folder is deleted. |
 
 The hook binary only **writes** to your PowerMem server; it does not install a system daemon. No separate “service uninstall” is required.
 
@@ -179,8 +179,8 @@ Same **MCP / HTTP** split as elsewhere in PowerMem. **Standard shipping = HTTP m
 
 | Mode | Plugin root `.mcp.json` | Claude in-chat | Silent capture (hooks → REST) |
 |------|-------------------------|----------------|--------------------------------|
-| **HTTP mode (default)** | Empty `mcpServers` — same as [`config/http-mode.mcp.json`](../../apps/claude-code-plugin/config/http-mode.mcp.json) | No PowerMem MCP tools | Yes (`POWERMEM_BASE_URL`, default `http://localhost:8848`) |
-| **MCP mode** | Includes `powermem` — [`config/mcp-mode.mcp.json`](../../apps/claude-code-plugin/config/mcp-mode.mcp.json) | Yes — `search_memories`, `add_memory`, … | Yes |
+| **HTTP mode (default)** | Empty `mcpServers` — same as [`config/http-mode.mcp.json`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/config/http-mode.mcp.json) | No PowerMem MCP tools | Yes (`POWERMEM_BASE_URL`, default `http://localhost:8848`) |
+| **MCP mode** | Includes `powermem` — [`config/mcp-mode.mcp.json`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/config/mcp-mode.mcp.json) | Yes — `search_memories`, `add_memory`, … | Yes |
 
 **Switch mode** (from the plugin directory):
 
@@ -189,7 +189,7 @@ bash scripts/apply-connection-mode.sh http  # restore standard (default) HTTP-on
 bash scripts/apply-connection-mode.sh mcp   # enable in-chat PowerMem tools
 ```
 
-Restart Claude Code after changing `.mcp.json`. See [`config/README.md`](../../apps/claude-code-plugin/config/README.md).
+Restart Claude Code after changing `.mcp.json`. See [`config/README.md`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/config/README.md).
 
 **Naming note:** In **MCP mode**, `transport: "http"` means “connect to the **MCP** endpoint over HTTP” (`https://host/mcp`), not “replace MCP with REST.” **HTTP mode** means “no MCP entry for PowerMem”; REST is still used by hooks.
 
@@ -230,7 +230,7 @@ This is the **default** root `.mcp.json`. Claude has **no** PowerMem MCP tools; 
 
 ### Seamless recording (hooks + HTTP API)
 
-The plugin ships [`hooks/hooks.json`](../../apps/claude-code-plugin/hooks/hooks.json), [`hooks/run-hook.sh`](../../apps/claude-code-plugin/hooks/run-hook.sh), and **native** `hooks/bin/powermem-hook-*` (built from [`cmd/powermem-hook`](../../apps/claude-code-plugin/cmd/powermem-hook/)). When the plugin is enabled, Claude Code merges these hooks:
+The plugin ships [`hooks/hooks.json`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/hooks/hooks.json), [`hooks/run-hook.sh`](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/hooks/run-hook.sh), and **native** `hooks/bin/powermem-hook-*` (built from [`cmd/powermem-hook`](https://github.com/oceanbase/powermem/tree/main/apps/claude-code-plugin/cmd/powermem-hook/)). When the plugin is enabled, Claude Code merges these hooks:
 
 | Hook | What happens |
 |------|----------------|
@@ -279,7 +279,7 @@ What you see is often **expected**:
 
 ### Optional: workspace file watcher (CLI / no VS Code)
 
-If engineers use **Claude Code without** the [PowerMem VS Code extension](../../apps/vscode-extension/) (which already **auto-captures on save** against `powermem.backendUrl`), run the native poller:
+If engineers use **Claude Code without** the [PowerMem VS Code extension](https://github.com/oceanbase/powermem/tree/main/apps/vscode-extension/) (which already **auto-captures on save** against `powermem.backendUrl`), run the native poller:
 
 ```bash
 export POWERMEM_BASE_URL=https://powermem.example.com
@@ -288,7 +288,7 @@ export POWERMEM_WATCH_ROOT=/path/to/repo
 sh hooks/run-hook.sh poll
 ```
 
-See [watcher/README.md](../../apps/claude-code-plugin/watcher/README.md) for environment variables.
+See [watcher/README.md](https://github.com/oceanbase/powermem/blob/main/apps/claude-code-plugin/watcher/README.md) for environment variables.
 
 ## Usage
 

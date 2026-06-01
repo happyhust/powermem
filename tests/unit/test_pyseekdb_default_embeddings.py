@@ -19,10 +19,23 @@ import pytest
 
 @pytest.fixture
 def mock_default_fn():
-    """Mock pyseekdb.DefaultEmbeddingFunction so no model is downloaded."""
-    with patch(
-        "pyseekdb.client.embedding_function.DefaultEmbeddingFunction"
-    ) as mock_cls:
+    """Mock pyseekdb.DefaultEmbeddingFunction so no model is downloaded.
+
+    We also stub out ``_load_sentence_transformer_with_fallback``: the
+    embedder pre-warms a ``sentence_transformers`` model in ``__init__``
+    before creating the DefaultEmbeddingFunction. Without this stub the test
+    would import ``sentence_transformers`` (an optional extra) and hit the
+    network on a cache miss, defeating the point of mocking the embedder.
+    """
+    with (
+        patch(
+            "pyseekdb.client.embedding_function.DefaultEmbeddingFunction"
+        ) as mock_cls,
+        patch(
+            "powermem.integrations.embeddings.pyseekdb_default."
+            "_load_sentence_transformer_with_fallback"
+        ),
+    ):
         instance = MagicMock()
         # Return one 384-dim vector per input document, matching all-MiniLM-L6-v2.
         instance.side_effect = lambda docs: [[0.1] * 384 for _ in docs]
@@ -93,10 +106,9 @@ def test_config_defaults_match_pyseekdb(mock_default_fn):
 
 
 def test_default_provider_is_registered():
-    from powermem.integrations.embeddings.config.base import BaseEmbedderConfig
-
     # Importing providers populates the registry via __pydantic_init_subclass__.
     import powermem.integrations.embeddings.config.providers  # noqa: F401
+    from powermem.integrations.embeddings.config.base import BaseEmbedderConfig
 
     assert BaseEmbedderConfig.has_provider("default")
     assert (
