@@ -23,10 +23,10 @@ import logging
 import threading
 from typing import List, Literal, Optional
 
-from loguru import logger
-
 from powermem.integrations.embeddings.base import EmbeddingBase
 from powermem.integrations.embeddings.config.base import BaseEmbedderConfig
+
+logger = logging.getLogger(__name__)
 
 logging.getLogger("onnxruntime").setLevel(logging.WARNING)
 logging.getLogger("huggingface_hub").setLevel(logging.WARNING)
@@ -88,12 +88,12 @@ def _load_sentence_transformer_with_fallback(model_name: str, repo_id: str):
     if _is_model_cached(repo_id):
         model = SentenceTransformer(model_name, local_files_only=True)
         _patch_sentence_transformer_cache(model_name, model)
-        logger.info("Loaded {} from local cache", model_name)
+        logger.info("Loaded %s from local cache", model_name)
         return model
 
     # Cache miss: attempt download with timeout.
     logger.debug(
-        "Model {} not in cache, attempting download (timeout {}s)…",
+        "Model %s not in cache, attempting download (timeout %ss)…",
         model_name,
         _MODEL_DOWNLOAD_TIMEOUT_S,
     )
@@ -113,7 +113,7 @@ def _load_sentence_transformer_with_fallback(model_name: str, repo_id: str):
 
     if result[0] is not None:
         _patch_sentence_transformer_cache(model_name, result[0])
-        logger.info("Downloaded and loaded {}", model_name)
+        logger.info("Downloaded and loaded %s", model_name)
         return result[0]
 
     if error[0] is not None:
@@ -149,7 +149,7 @@ def _patch_sentence_transformer_cache(model_name: str, model):
         )
 
         SentenceTransformerEmbeddingFunction.models[model_name] = model
-        logger.debug("Patched pyseekdb SentenceTransformer cache for {}", model_name)
+        logger.debug("Patched pyseekdb SentenceTransformer cache for %s", model_name)
     except ImportError:
         logger.debug("Could not patch pyseekdb cache (module not available)")
 
@@ -185,7 +185,7 @@ class PyseekdbDefaultEmbedding(EmbeddingBase):
         )
 
         logger.info(
-            "PyseekdbDefaultEmbedding ready (model={}, dims={})",
+            "PyseekdbDefaultEmbedding ready (model=%s, dims=%s)",
             self.config.model,
             self.config.embedding_dims,
         )
