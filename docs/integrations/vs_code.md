@@ -1,6 +1,6 @@
 # VS Code
 
-Use the first-party [PowerMem VS Code extension](../../apps/vscode-extension/) to connect VS Code to PowerMem, query memories from the editor, save selected text, and link other AI tools.
+Use the first-party [PowerMem VS Code extension](https://github.com/oceanbase/powermem/tree/main/apps/vscode-extension/) to connect VS Code to PowerMem, query memories from the editor, save selected text, and link other AI tools.
 
 ## Recommended setup — let VS Code agent set it up
 
@@ -17,7 +17,7 @@ Then open the AI agent window in VS Code and paste this one line:
 Read and follow apps/vscode-extension/SETUP.md to setup PowerMem
 ```
 
-The agent follows [`../../apps/vscode-extension/SETUP.md`](../../apps/vscode-extension/SETUP.md), reuses or starts the HTTP API backend first, and only falls back to MCP-only when HTTP cannot be made healthy.
+The agent follows [`apps/vscode-extension/SETUP.md`](https://github.com/oceanbase/powermem/blob/main/apps/vscode-extension/SETUP.md), reuses or starts the HTTP API backend first, and only falls back to MCP-only when HTTP cannot be made healthy.
 
 ## Prerequisites
 
@@ -58,7 +58,7 @@ code --install-extension powermem-vscode-*.vsix
 5. Keep **Connection Mode** as `mcp` unless you need HTTP-only context integration.
 6. Run **Test connection**.
 
-The full agent-friendly setup prompt is [`../../apps/vscode-extension/SETUP.md`](../../apps/vscode-extension/SETUP.md).
+The full agent-friendly setup prompt is [`apps/vscode-extension/SETUP.md`](https://github.com/oceanbase/powermem/blob/main/apps/vscode-extension/SETUP.md).
 
 ### Use
 
@@ -83,4 +83,4 @@ The full agent-friendly setup prompt is [`../../apps/vscode-extension/SETUP.md`]
 
 ## Uninstall
 
-See [`../../apps/vscode-extension/UNINSTALL.md`](../../apps/vscode-extension/UNINSTALL.md).
+See [`apps/vscode-extension/UNINSTALL.md`](https://github.com/oceanbase/powermem/blob/main/apps/vscode-extension/UNINSTALL.md).

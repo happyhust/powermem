@@ -57,7 +57,7 @@ memory.add(
 )
 ```
 
-For a full LCEL implementation, see [`../../examples/langchain/README.md`](../../examples/langchain/README.md) and [`../examples/scenario_5_custom_integration.md`](../examples/scenario_5_custom_integration.md).
+For a full LCEL implementation, see [`examples/langchain/README.md`](https://github.com/oceanbase/powermem/blob/main/examples/langchain/README.md) and [`../examples/scenario_5_custom_integration.md`](../examples/scenario_5_custom_integration.md).
 
 ## LangGraph pattern
 
@@ -86,6 +86,6 @@ See the LangGraph section in [`../guides/0009-integrations.md`](../guides/0009-i
 
 ## See also
 
-- [`../../examples/langchain/README.md`](../../examples/langchain/README.md)
+- [`examples/langchain/README.md`](https://github.com/oceanbase/powermem/blob/main/examples/langchain/README.md)
 - [`../guides/0009-integrations.md`](../guides/0009-integrations.md)
 - [`../examples/scenario_5_custom_integration.md`](../examples/scenario_5_custom_integration.md)

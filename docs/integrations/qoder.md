@@ -22,7 +22,7 @@ Then open the AI agent window in Qoder and paste this one line:
 Read and follow apps/vscode-extension/SETUP.md to setup PowerMem
 ```
 
-The agent follows [`../../apps/vscode-extension/SETUP.md`](../../apps/vscode-extension/SETUP.md), prefers a reusable `powermem-server` HTTP API backend, and configures Qoder through MCP only for the current Qoder IDE/CLI setup.
+The agent follows [`apps/vscode-extension/SETUP.md`](https://github.com/oceanbase/powermem/blob/main/apps/vscode-extension/SETUP.md), prefers a reusable `powermem-server` HTTP API backend, and configures Qoder through MCP only for the current Qoder IDE/CLI setup.
 
 ## Prerequisites
 

@@ -22,7 +22,7 @@ Then open the AI agent window in OpenCode and paste this one line:
 Read and follow apps/mcp-client/SETUP.md to setup PowerMem
 ```
 
-The agent follows [`../../apps/mcp-client/SETUP.md`](../../apps/mcp-client/SETUP.md), runs `powermem-mcp` directly, and configures only the current OpenCode setup.
+The agent follows [`apps/mcp-client/SETUP.md`](https://github.com/oceanbase/powermem/blob/main/apps/mcp-client/SETUP.md), runs `powermem-mcp` directly, and configures only the current OpenCode setup.
 
 ## Prerequisites
 
@@ -125,4 +125,4 @@ If you expose PowerMem MCP behind a remote URL, replace `http://localhost:8848/m
 
 ## Uninstall
 
-Remove the `mcp.powermem` entry from the OpenCode config file you edited, then restart OpenCode or reload MCP servers. For agent-guided cleanup, follow [`../../apps/mcp-client/UNINSTALL.md`](../../apps/mcp-client/UNINSTALL.md).
+Remove the `mcp.powermem` entry from the OpenCode config file you edited, then restart OpenCode or reload MCP servers. For agent-guided cleanup, follow [`apps/mcp-client/UNINSTALL.md`](https://github.com/oceanbase/powermem/blob/main/apps/mcp-client/UNINSTALL.md).

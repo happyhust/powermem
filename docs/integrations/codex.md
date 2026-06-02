@@ -1,6 +1,6 @@
 # Codex
 
-Connect Codex to PowerMem through MCP. The recommended setup path is the generic [PowerMem MCP client setup](../../apps/mcp-client/SETUP.md).
+Connect Codex to PowerMem through MCP. The recommended setup path is the generic [PowerMem MCP client setup](https://github.com/oceanbase/powermem/blob/main/apps/mcp-client/SETUP.md).
 
 ## Recommended setup — let your MCP client agent set it up
 
@@ -17,7 +17,7 @@ Then open the AI agent window where you run Codex and paste this one line:
 Read and follow apps/mcp-client/SETUP.md to setup PowerMem
 ```
 
-The agent follows [`../../apps/mcp-client/SETUP.md`](../../apps/mcp-client/SETUP.md), runs `powermem-mcp` directly, and updates only the Codex MCP configuration.
+The agent follows [`apps/mcp-client/SETUP.md`](https://github.com/oceanbase/powermem/blob/main/apps/mcp-client/SETUP.md), runs `powermem-mcp` directly, and updates only the Codex MCP configuration.
 
 ## Prerequisites
 
@@ -60,4 +60,4 @@ If the PowerMem MCP endpoint requires auth, add the matching header or pass
 
 ## Uninstall
 
-Remove `mcpServers.powermem` from `~/.codex/context.json`. Leave other providers untouched. For agent-guided cleanup, follow [`../../apps/mcp-client/UNINSTALL.md`](../../apps/mcp-client/UNINSTALL.md).
+Remove `mcpServers.powermem` from `~/.codex/context.json`. Leave other providers untouched. For agent-guided cleanup, follow [`apps/mcp-client/UNINSTALL.md`](https://github.com/oceanbase/powermem/blob/main/apps/mcp-client/UNINSTALL.md).

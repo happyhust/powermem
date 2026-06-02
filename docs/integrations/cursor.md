@@ -1,6 +1,6 @@
 # Cursor
 
-Connect Cursor to PowerMem through MCP. The recommended path is the [PowerMem VS Code extension](../../apps/vscode-extension/), which runs in Cursor and writes `~/.cursor/mcp.json` for you.
+Connect Cursor to PowerMem through MCP. The recommended path is the [PowerMem VS Code extension](https://github.com/oceanbase/powermem/tree/main/apps/vscode-extension/), which runs in Cursor and writes `~/.cursor/mcp.json` for you.
 
 ## Recommended setup — let Cursor agent set it up
 
@@ -17,7 +17,7 @@ Then open the AI agent window in Cursor and paste this one line:
 Read and follow apps/vscode-extension/SETUP.md to setup PowerMem
 ```
 
-The agent follows [`../../apps/vscode-extension/SETUP.md`](../../apps/vscode-extension/SETUP.md), reuses or starts `powermem-server` first, and configures Cursor's MCP entry only for the current IDE.
+The agent follows [`apps/vscode-extension/SETUP.md`](https://github.com/oceanbase/powermem/blob/main/apps/vscode-extension/SETUP.md), reuses or starts `powermem-server` first, and configures Cursor's MCP entry only for the current IDE.
 
 ## Prerequisites
 
@@ -39,7 +39,7 @@ Install the PowerMem VS Code extension in Cursor:
 2. Install the packaged PowerMem `.vsix`, or run the extension from source.
 3. Run **PowerMem: Setup** and set the backend URL.
 
-See [`../../apps/vscode-extension/SETUP.md`](../../apps/vscode-extension/SETUP.md) for the full setup checklist.
+See [`apps/vscode-extension/SETUP.md`](https://github.com/oceanbase/powermem/blob/main/apps/vscode-extension/SETUP.md) for the full setup checklist.
 
 ### Configure
 
@@ -83,4 +83,4 @@ If you prefer stdio MCP, set **MCP server path** in **PowerMem: Setup** and reru
 
 ## Uninstall
 
-Remove only the `mcpServers.powermem` entry from `~/.cursor/mcp.json`, then reload Cursor. To remove the extension itself, follow [`../../apps/vscode-extension/UNINSTALL.md`](../../apps/vscode-extension/UNINSTALL.md).
+Remove only the `mcpServers.powermem` entry from `~/.cursor/mcp.json`, then reload Cursor. To remove the extension itself, follow [`apps/vscode-extension/UNINSTALL.md`](https://github.com/oceanbase/powermem/blob/main/apps/vscode-extension/UNINSTALL.md).
