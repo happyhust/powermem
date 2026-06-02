@@ -12,6 +12,12 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+# Import the submodule explicitly so ``pyseekdb_default`` is a resolved
+# attribute of the package before any test patches it. ``unittest.mock`` on
+# Python 3.11 does not auto-import the final submodule when resolving a dotted
+# patch target, so patch.object(<module>, ...) is used instead of a string.
+from powermem.integrations.embeddings import pyseekdb_default
+
 # ---------------------------------------------------------------------------
 # Embedder behaviour
 # ---------------------------------------------------------------------------
@@ -31,10 +37,7 @@ def mock_default_fn():
         patch(
             "pyseekdb.client.embedding_function.DefaultEmbeddingFunction"
         ) as mock_cls,
-        patch(
-            "powermem.integrations.embeddings.pyseekdb_default."
-            "_load_sentence_transformer_with_fallback"
-        ),
+        patch.object(pyseekdb_default, "_load_sentence_transformer_with_fallback"),
     ):
         instance = MagicMock()
         # Return one 384-dim vector per input document, matching all-MiniLM-L6-v2.
