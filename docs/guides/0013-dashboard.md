@@ -37,6 +37,8 @@ The PowerMem Web Dashboard provides a visual interface for inspecting, managing,
 
 The Web Dashboard is served by the PowerMem HTTP API server. To start the server:
 
+> **Note:** If you already have the PowerMem server running, you can skip this step and proceed directly to [Accessing the Dashboard](#accessing-the-dashboard).
+
 ```bash
 # Using pip-installed server
 powermem-server --host 0.0.0.0 --port 8848
@@ -97,7 +99,7 @@ POWERMEM_SERVER_API_KEYS=your-secret-key-1,your-secret-key-2
 POWERMEM_SERVER_API_KEY=your-secret-key
 ```
 
-3. Restart the server:
+3. Restart the server (if it's already running; otherwise, just start it):
 
 ```bash
 powermem-server --host 0.0.0.0 --port 8848
@@ -352,7 +354,7 @@ make build-dashboard
 # Verify the assets exist
 ls src/server/dashboard/index.html
 
-# Restart the server
+# Restart the server (skip if server is not running yet, just start it)
 make server-stop
 make server-start
 ```
@@ -374,7 +376,7 @@ make server-start
 
 If you don't have an API key:
 1. Check your `.env` file for `POWERMEM_SERVER_API_KEYS` or `POWERMEM_SERVER_API_KEY`
-2. If authentication is not needed, set `POWERMEM_SERVER_AUTH_ENABLED=false` and restart the server
+2. If authentication is not needed, set `POWERMEM_SERVER_AUTH_ENABLED=false` and restart the server (or start it if not running)
 
 ### Stale or Missing Data
 
@@ -402,7 +404,7 @@ cd ..
 # Copy to server directory
 make build-dashboard
 
-# Restart server
+# Restart server (skip if server is not running yet, just start it)
 make server-stop
 make server-start
 ```

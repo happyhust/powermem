@@ -15,6 +15,9 @@ The PowerMem HTTP API Server is built with FastAPI and provides:
 - **Production-ready** deployment options
 
 ### Starting the API Server
+
+> **Note:** If you already have the PowerMem server running, you can skip this section and proceed to the next step.
+
 ```bash
 # Method 1: Install from powermem package, use CLI command
 pip install powermem
