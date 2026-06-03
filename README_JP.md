@@ -266,6 +266,8 @@ SDK と同じ `.env` を使用。Dashboard は `/dashboard/` 以下に提供さ�
 powermem-server --host 0.0.0.0 --port 8848
 ```
 
+`http://localhost:8848/dashboard/` にアクセスして、メモリの閲覧、分析データの表示、システムヘルスの監視ができます。完全な手順は [Web Dashboard ガイド](docs/guides/0013-dashboard.md) を参照してください。
+
 Docker / Compose は [API Server](docs/api/0005-api_server.md) と [Docker README](docker/README.md) を参照。公式イメージ: `oceanbase/powermem-server:latest`。
 
 ---
@@ -293,6 +295,7 @@ Docker / Compose は [API Server](docs/api/0005-api_server.md) と [Docker READM
 
 - [はじめに](docs/guides/0001-getting_started.md) — インストール、`.env`、最初の `Memory` 利用
 - [設定](docs/guides/0003-configuration.md) — 設定モデル、ストレージバックエンド、環境変数
+- [Web Dashboard](docs/guides/0013-dashboard.md) — メモリ検査、分析、システム監視のためのビジュアルインターフェース
 - [アーキテクチャ](docs/architecture/overview.md) — 主要コンポーネント、ストレージ構成、検索の流れ
 - [API とサービス](docs/api/overview.md) — REST、MCP、HTTP サーバー、Python 向け API
 - [CLI](docs/guides/0012-cli_usage.md) — `pmem` コマンド、対話シェル、バックアップとマイグレーション
