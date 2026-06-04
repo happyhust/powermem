@@ -266,7 +266,7 @@ SDK と同じ `.env` を使用。Dashboard は `/dashboard/` 以下に提供さ�
 powermem-server --host 0.0.0.0 --port 8848
 ```
 
-`http://localhost:8848/dashboard/` にアクセスして、メモリの閲覧、分析データの表示、システムヘルスの監視ができます。完全な手順は [Web Dashboard ガイド](docs/guides/0013-dashboard.md) を参照してください。
+ローカルの対話型ターミナルでは、サーバーの準備完了後に Dashboard がデフォルトブラウザーで自動的に開きます。手動で `http://localhost:8848/dashboard/` にアクセスして、メモリの閲覧、分析データの表示、システムヘルスの監視もできます。自動オープンを無効にするには `--no-open-browser`、出力をリダイレクトしている場合に明示的に開くには `--open-browser` を使用します。CI、コンテナー、SSH、ヘッドレス環境、および Dashboard アセットがない場合はブラウザーを開きません。完全な手順は [Web Dashboard ガイド](docs/guides/0013-dashboard.md) を参照してください。
 
 Docker / Compose は [API Server](docs/api/0005-api_server.md) と [Docker README](docker/README.md) を参照。公式イメージ: `oceanbase/powermem-server:latest`。
 
