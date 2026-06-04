@@ -75,7 +75,7 @@ docker-compose -f docker/docker-compose.yml up -d
 
 The dashboard is available at the same URL: `http://localhost:8848/dashboard/`
 
-For detailed deployment instructions, see the [Docker & Deployment Guide](../../docker/README.md).
+For detailed deployment instructions, see the [Docker & Deployment Guide](https://github.com/oceanbase/powermem/blob/main/docker/README.md).
 
 ---
 
@@ -409,7 +409,7 @@ make server-stop
 make server-start
 ```
 
-> **Development Tip:** For active dashboard development, you can run the Vite dev server separately (`cd dashboard && pnpm dev`) and configure it to proxy API requests to your backend. See the [Development Guide](../../docs/development/overview.md) for details.
+> **Development Tip:** For active dashboard development, you can run the Vite dev server separately (`cd dashboard && pnpm dev`) and configure it to proxy API requests to your backend. See the [Development Guide](../development/overview.md) for details.
 
 ---
 
@@ -457,5 +457,5 @@ Use the SDK, CLI, or API when you need to:
 - [API Server Documentation](../api/0005-api_server.md) — Server configuration and deployment
 - [Getting Started Guide](./0001-getting_started.md) — Initial setup and SDK usage
 - [Configuration Guide](./0003-configuration.md) — Environment variables and settings
-- [Docker & Deployment](../../docker/README.md) — Production deployment
-- [Development Guide](../../docs/development/overview.md) — Building and customizing the dashboard
+- [Docker & Deployment](https://github.com/oceanbase/powermem/blob/main/docker/README.md) — Production deployment
+- [Development Guide](../development/overview.md) — Building and customizing the dashboard
